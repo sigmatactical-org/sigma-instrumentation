@@ -17,7 +17,8 @@ path = "src/main.rs"
 virt-panel = []
 
 [dependencies]
-slint = { version = "1.16.1", default-features = false, features = ["renderer-femtovg", "backend-winit", "compat-1-2"] }
+# Pinned for Yocto meta-rust 1.86 (slint 1.14+ requires rustc 1.88+)
+slint = { version = "=1.13.1", default-features = false, features = ["renderer-femtovg", "backend-winit", "compat-1-2"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
 [build-dependencies]
-slint-build = "1.16.1"
+slint-build = "=1.13.1"
