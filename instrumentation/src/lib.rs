@@ -11,5 +11,5 @@ pub mod gauge;
 pub mod theme;
 pub mod windows;
 
-pub use dashboard::init_gauge_art;
+pub use dashboard::{init_gauge_art, set_speed_readout, speed_digits};
 pub use display::{configure_window, DisplayConfig};

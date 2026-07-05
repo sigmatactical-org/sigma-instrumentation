@@ -93,10 +93,12 @@ export component RoadDashboard inherits Rectangle {
     background: SigmaTheme.tft;
 
     if !root.show-fullscreen: Rectangle {
-        width: 100%; height: 100%;
+        width: 800px;
+        height: 480px;
 
         RpmDial {
-            width: 100%; height: 100%;
+            x: 0;
+            y: 0;
             rpm: root.rpm;
             gear: root.gear;
             at-redline: root.at-redline;
@@ -113,9 +115,10 @@ export component RoadDashboard inherits Rectangle {
             labels: root.labels;
         }
 
+        // Speed — centred above dial hub, inside upper face (design coords)
         SpeedReadout {
-            x: parent.width - self.width - 20px;
-            y: 8px;
+            x: 452px - self.width / 2;
+            y: 52px;
             d-hundreds: root.d-hundreds;
             d-tens: root.d-tens;
             d-ones: root.d-ones;

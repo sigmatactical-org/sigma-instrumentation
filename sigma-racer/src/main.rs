@@ -2,17 +2,24 @@
 //!
 //! Live vehicle data replaces the idle loop via CAN-FD from the M7 safety core.
 
+mod telemetry;
 mod vehicle;
 
 use chrono::Local;
-use instrumentation::{configure_window, gauge, init_gauge_art, theme, DisplayConfig, SigmaDashboard};
+use instrumentation::{
+    configure_window, init_gauge_art, theme, DisplayConfig, SigmaDashboard,
+};
 use slint::ComponentHandle;
 use slint::SharedString;
 use std::time::Duration;
+use telemetry::attach as attach_telemetry;
+
+const BOOT_SPLASH_MS: u64 = 1200;
 
 fn main() -> Result<(), slint::PlatformError> {
     let ui = SigmaDashboard::new()?;
 
+    ui.set_boot_visible(true);
     theme::init_from_env(&ui);
     configure_window(
         &ui,
@@ -22,6 +29,14 @@ fn main() -> Result<(), slint::PlatformError> {
 
     ui.set_current_window(0);
     push_idle(&ui);
+    attach_telemetry(&ui);
+
+    let ui_weak = ui.as_weak();
+    slint::Timer::single_shot(Duration::from_millis(BOOT_SPLASH_MS), move || {
+        if let Some(ui) = ui_weak.upgrade() {
+            ui.set_boot_visible(false);
+        }
+    });
 
     let ui_weak = ui.as_weak();
     let timer = slint::Timer::default();
@@ -36,12 +51,15 @@ fn main() -> Result<(), slint::PlatformError> {
     ui.run()
 }
 
-/// Placeholder until CAN-FD feeds live telemetry.
+/// Fallback values until the first Snapshot arrives from vehicle.service.
 fn push_idle(ui: &SigmaDashboard) {
-    let profile = vehicle::XSR900_GP;
+    use instrumentation::{gauge, set_speed_readout};
+    use vehicle::XSR900_GP;
+
+    let profile = XSR900_GP;
 
     ui.set_rpm(profile.idle_rpm);
-    ui.set_speed(0);
+    set_speed_readout(ui, 0);
     ui.set_gear(0);
     ui.set_at_redline(false);
     ui.set_side_stand(true);

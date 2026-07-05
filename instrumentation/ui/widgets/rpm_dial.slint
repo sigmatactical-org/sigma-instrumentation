@@ -8,8 +8,8 @@ export struct Tick {
 }
 
 component GaugePath inherits Path {
-    width: 100%;
-    height: 100%;
+    width: 800px;
+    height: 480px;
     viewbox-x: 0;
     viewbox-y: 0;
     viewbox-width: 800;
@@ -17,7 +17,7 @@ component GaugePath inherits Path {
     fill: transparent;
 }
 
-// RPM dial — centre 452,246  R=198 (must match CX/CY/R in src/gauge.rs).
+// RPM dial — fixed 800×480 design canvas (must match gauge.rs CX/CY/R).
 export component RpmDial inherits Rectangle {
     in property <float> rpm: 0;
     in property <int> gear: 0;
@@ -35,6 +35,8 @@ export component RpmDial inherits Rectangle {
     in property <string> needle-outline;
     in property <[Tick]> labels;
 
+    width: 800px;
+    height: 480px;
     background: transparent;
 
     Rectangle {
@@ -48,7 +50,7 @@ export component RpmDial inherits Rectangle {
     }
 
     Path {
-        width: 100%; height: 100%;
+        width: 800px; height: 480px;
         viewbox-x: 0; viewbox-y: 0; viewbox-width: 800; viewbox-height: 480;
         commands: root.swept-path;
         fill: root.at-redline ? SigmaTheme.redline-bright : SigmaTheme.dial-swept;
@@ -69,15 +71,24 @@ export component RpmDial inherits Rectangle {
         stroke-width: 3.5px;
     }
 
-    for t in root.labels: Text {
-        x: t.x - self.width / 2;
-        y: t.y - self.height / 2;
-        text: t.label;
-        color: t.redline
-            ? (root.at-redline ? SigmaTheme.redline-bright : SigmaTheme.accent-red-dim)
-            : SigmaTheme.dial-face;
-        font-size: 26px;
-        font-weight: 700;
+    for t in root.labels: Rectangle {
+        x: t.x - 18px;
+        y: t.y - 15px;
+        width: 36px;
+        height: 30px;
+        background: transparent;
+        Text {
+            width: 100%;
+            height: 100%;
+            text: t.label;
+            color: t.redline
+                ? (root.at-redline ? SigmaTheme.redline-bright : SigmaTheme.accent-red-dim)
+                : SigmaTheme.dial-face;
+            font-size: 26px;
+            font-weight: 700;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
     }
 
     GaugePath {
@@ -103,21 +114,25 @@ export component RpmDial inherits Rectangle {
         border-radius: 58px; background: SigmaTheme.dial-face-bg;
         border-width: 4px; border-color: SigmaTheme.dial-gear-ring;
         Text {
-            x: (parent.width - self.width) / 2;
-            y: (parent.height - self.height) / 2;
+            width: 100%;
+            height: 100%;
             text: root.gear == 0 ? "N" : "\{root.gear}";
             color: root.gear == 0 ? SigmaTheme.dial-face : SigmaTheme.dial-gear;
             font-size: 74px;
             font-weight: 800;
+            horizontal-alignment: center;
+            vertical-alignment: center;
         }
     }
 
     Text {
-        x: 452px - self.width / 2;
+        width: 120px;
+        x: 452px - 60px;
         y: 246px + 74px;
         text: "RPM × 1000";
         color: SigmaTheme.dial-caption;
         font-size: 10px;
         font-weight: 600;
+        horizontal-alignment: center;
     }
 }

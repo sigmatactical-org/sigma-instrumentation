@@ -12,7 +12,6 @@
 
 use slint::SharedString;
 
-// --- dial (800x480 design box) — synced with rpm_dial.slint ---
 const CX: f32 = 452.0;
 const CY: f32 = 246.0;
 const R: f32 = 198.0;
@@ -149,7 +148,7 @@ pub fn numerals() -> Vec<Numeral> {
     (0..=12)
         .map(|k| {
             let rpm = k as f32 * 1000.0;
-            let (x, y) = point(angle_for(rpm), R * 0.66);
+            let (x, y) = point(angle_for(rpm), R * 0.72);
             Numeral {
                 x,
                 y,

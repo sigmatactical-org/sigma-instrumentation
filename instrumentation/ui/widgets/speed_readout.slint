@@ -6,56 +6,65 @@ export component SpeedReadout inherits Rectangle {
     in property <string> d-ones;
     in property <bool> hot: false;
 
-    property <length> cell: 50px;
+    property <length> cell: 44px;
     property <color> tint: root.hot ? SigmaTheme.accent-red-dim : SigmaTheme.dial-value;
     opacity: SigmaTone.speed-opacity;
 
-    width: 3 * cell + 52px;
-    height: 98px;
+    width: 3 * cell + 44px;
+    height: 72px;
     clip: false;
 
     Rectangle {
-        x: 0; y: 0; width: cell; height: 86px;
+        x: 0; y: 0; width: cell; height: 60px;
         clip: false;
         Text {
-            x: (parent.width - self.preferred-width) / 2;
-            y: (parent.height - self.preferred-height) / 2;
+            width: 100%;
+            height: 100%;
             text: root.d-hundreds;
             color: tint;
-            font-size: 72px;
+            font-size: 58px;
             font-weight: 700;
+            horizontal-alignment: center;
+            vertical-alignment: center;
         }
     }
     Rectangle {
-        x: cell; y: 0; width: cell; height: 86px;
+        x: cell; y: 0; width: cell; height: 60px;
         clip: false;
         Text {
-            x: (parent.width - self.preferred-width) / 2;
-            y: (parent.height - self.preferred-height) / 2;
+            width: 100%;
+            height: 100%;
             text: root.d-tens;
             color: tint;
-            font-size: 72px;
+            font-size: 58px;
             font-weight: 700;
+            horizontal-alignment: center;
+            vertical-alignment: center;
         }
     }
     Rectangle {
-        x: 2 * cell; y: 0; width: cell; height: 86px;
+        x: 2 * cell; y: 0; width: cell; height: 60px;
         clip: false;
         Text {
-            x: (parent.width - self.preferred-width) / 2;
-            y: (parent.height - self.preferred-height) / 2;
+            width: 100%;
+            height: 100%;
             text: root.d-ones;
             color: tint;
-            font-size: 72px;
+            font-size: 58px;
             font-weight: 700;
+            horizontal-alignment: center;
+            vertical-alignment: center;
         }
     }
 
     Text {
-        x: 3 * cell + 8px; y: 48px;
+        width: 40px;
+        x: 3 * cell + 4px;
+        y: 38px;
         text: "km/h";
         color: root.hot ? SigmaTheme.accent-red-dim : SigmaTheme.dial-caption;
         font-size: 10px;
         font-weight: 600;
+        horizontal-alignment: left;
     }
 }

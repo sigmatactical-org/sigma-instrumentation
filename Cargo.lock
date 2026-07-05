@@ -611,6 +611,7 @@ dependencies = [
  "iana-time-zone",
  "js-sys",
  "num-traits",
+ "serde",
  "wasm-bindgen",
  "windows-link 0.2.1",
 ]
@@ -642,6 +643,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "197fd99cb113a8d5d9b6376f3aa817f32c1078f2343b714fff7d2ca44fdf67d5"
 dependencies = [
  "hashbrown 0.16.1",
+]
+
+[[package]]
+name = "co-pilot-telemetry"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "dbc-rs",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -907,6 +918,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be1e0bca6c3637f992fc1cc7cbc52a78c1ef6db076dbf1059c4323d6a2048376"
 
 [[package]]
+name = "dbc-rs"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "939b64e4b9efa32d7f6f66a8e5db7c19bee18628686f6f3c57fba4f3b1b67bce"
+dependencies = [
+ "sigma-bounded",
+]
+
+[[package]]
 name = "derive_more"
 version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1053,6 +1073,15 @@ name = "either"
 version = "1.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "91622ff5e7162018101f2fea40d6ebf4a78bbe5a49736a2020649edf9693679e"
+
+[[package]]
+name = "embedded-can"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e9d2e857f87ac832df68fa498d18ddc679175cf3d2e4aa893988e5601baf9438"
+dependencies = [
+ "nb",
+]
 
 [[package]]
 name = "endi"
@@ -2475,6 +2504,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "mdf4-rs"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b79a70eb13d36d6b28c9e42af4974012830c9a814fe8a2bbcc3b6b6a15d909e4"
+dependencies = [
+ "dbc-rs",
+ "embedded-can",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "memchr"
 version = "2.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2542,6 +2583,12 @@ dependencies = [
  "thiserror 2.0.18",
  "windows-sys 0.60.2",
 ]
+
+[[package]]
+name = "nb"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d5439c4ad607c3c23abf66de8c8bf57ba8adcd1f129e699851a6e43935d339d"
 
 [[package]]
 name = "ndk"
@@ -3772,10 +3819,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
 
 [[package]]
+name = "sigma-bounded"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dc30ea1c0d311073ceba69995b1896162625bbcfe48cbea0f6529402c43d29ca"
+
+[[package]]
 name = "sigma-racer"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "co-pilot-telemetry",
  "instrumentation",
  "slint",
 ]
@@ -4605,6 +4659,15 @@ dependencies = [
  "aligned-vec",
  "num-traits",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "vehicle-service"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "co-pilot-telemetry",
+ "mdf4-rs",
 ]
 
 [[package]]
