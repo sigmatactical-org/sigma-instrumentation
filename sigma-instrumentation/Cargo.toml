@@ -1,5 +1,5 @@
 [package]
-name = "sigmaracer-instrumentation"
+name = "sigma-instrumentation"
 description = "Reusable Sigma motorcycle instrument cluster UI (Slint)"
 version.workspace = true
 edition.workspace = true

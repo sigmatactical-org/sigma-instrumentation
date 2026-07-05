@@ -2,8 +2,8 @@
 
 use crate::can_log::CanLogger;
 use crate::sim::Simulator;
-use sigmaracer_wingman_telemetry::can::encode_sim_frames;
-use sigmaracer_wingman_telemetry::state::VehicleState;
+use sigma_racer_wingman_telemetry::can::encode_sim_frames;
+use sigma_racer_wingman_telemetry::state::VehicleState;
 use std::time::Duration;
 
 pub enum SignalSource {

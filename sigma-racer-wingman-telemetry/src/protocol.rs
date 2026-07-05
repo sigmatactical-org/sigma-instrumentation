@@ -7,7 +7,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 
 pub const PROTOCOL_VERSION: &str = "0.1";
-pub const SOCKET_PATH: &str = "/run/sigmaracer-wingman/vehicle.sock";
+pub const SOCKET_PATH: &str = "/run/sigma-racer-wingman/vehicle.sock";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Message {

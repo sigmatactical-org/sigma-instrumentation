@@ -3807,17 +3807,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dc30ea1c0d311073ceba69995b1896162625bbcfe48cbea0f6529402c43d29ca"
 
 [[package]]
-name = "sigma-racer"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "sigmaracer-instrumentation",
- "sigmaracer-wingman-telemetry",
- "slint",
-]
-
-[[package]]
-name = "sigmaracer-instrumentation"
+name = "sigma-instrumentation"
 version = "0.1.0"
 dependencies = [
  "slint",
@@ -3825,7 +3815,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "sigmaracer-wingman-telemetry"
+name = "sigma-racer"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "sigma-instrumentation",
+ "sigma-racer-wingman-telemetry",
+ "slint",
+]
+
+[[package]]
+name = "sigma-racer-wingman-telemetry"
 version = "0.1.0"
 dependencies = [
  "chrono",
@@ -4221,7 +4221,7 @@ name = "testbed"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "sigmaracer-instrumentation",
+ "sigma-instrumentation",
  "slint",
 ]
 
@@ -4667,7 +4667,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "mdf4-rs",
- "sigmaracer-wingman-telemetry",
+ "sigma-racer-wingman-telemetry",
 ]
 
 [[package]]

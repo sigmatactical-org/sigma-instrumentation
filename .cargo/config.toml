@@ -1,5 +1,5 @@
 [alias]
-# 800×480 borderless panel — matches sigmaracer-wingman-imx8mp and sigmaracer-wingman-qemu display
+# 800×480 borderless panel — matches sigma-racer-wingman-imx8mp and sigma-racer-wingman-qemu display
 virt = "run -p testbed --features virt-panel"
 
 [env]

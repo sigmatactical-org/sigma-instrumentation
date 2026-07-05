@@ -8,10 +8,10 @@ authors.workspace = true
 publish.workspace = true
 
 [[bin]]
-name = "sigmaracer-wingman-vehicle"
+name = "sigma-racer-wingman-vehicle"
 path = "src/main.rs"
 
 [dependencies]
-sigmaracer-wingman-telemetry = { path = "../sigmaracer-wingman-telemetry" }
+sigma-racer-wingman-telemetry = { path = "../sigma-racer-wingman-telemetry" }
 mdf4-rs = { version = "0.3.2", default-features = false, features = ["std", "dbc", "can"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }

@@ -1,7 +1,7 @@
 //! Yamaha XSR900 GP ride simulation for the testbed.
 
 use chrono::Local;
-use sigmaracer_instrumentation::{gauge, windows, SigmaDashboard};
+use sigma_instrumentation::{gauge, windows, SigmaDashboard};
 use slint::SharedString;
 use std::cell::Cell;
 use std::rc::Rc;

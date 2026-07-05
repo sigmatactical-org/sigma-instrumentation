@@ -13,11 +13,11 @@ name = "testbed"
 path = "src/main.rs"
 
 [features]
-# Fixed 800×480 panel window (matches sigmaracer-wingman-imx8mp / sigmaracer-wingman-qemu)
+# Fixed 800×480 panel window (matches sigma-racer-wingman-imx8mp / sigma-racer-wingman-qemu)
 virt-panel = []
 
 [dependencies]
-sigmaracer-instrumentation = { workspace = true }
+sigma-instrumentation = { workspace = true }
 slint = { workspace = true }
 chrono = { workspace = true }
 

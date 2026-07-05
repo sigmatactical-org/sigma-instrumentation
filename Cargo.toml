@@ -1,10 +1,10 @@
 [workspace]
 resolver = "2"
 members = [
-    "sigmaracer-instrumentation",
+    "sigma-instrumentation",
     "sigma-racer",
     "testbed",
-    "sigmaracer-wingman-telemetry",
+    "sigma-racer-wingman-telemetry",
     "vehicle-service",
 ]
 
@@ -19,5 +19,5 @@ publish = false
 slint = { version = "=1.13.1", default-features = false, features = ["renderer-femtovg", "backend-winit", "compat-1-2"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
 slint-build = "=1.13.1"
-sigmaracer-instrumentation = { path = "sigmaracer-instrumentation" }
-sigmaracer-wingman-telemetry = { path = "sigmaracer-wingman-telemetry" }
+sigma-instrumentation = { path = "sigma-instrumentation" }
+sigma-racer-wingman-telemetry = { path = "sigma-racer-wingman-telemetry" }

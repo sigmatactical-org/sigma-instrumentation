@@ -6,7 +6,7 @@ mod telemetry;
 mod vehicle;
 
 use chrono::Local;
-use sigmaracer_instrumentation::{
+use sigma_instrumentation::{
     configure_window, init_gauge_art, theme, DisplayConfig, SigmaDashboard,
 };
 use slint::ComponentHandle;
@@ -23,7 +23,7 @@ fn main() -> Result<(), slint::PlatformError> {
     theme::init_from_env(&ui);
     configure_window(
         &ui,
-        DisplayConfig::embedded(cfg!(sigmaracer_wingman_embedded)),
+        DisplayConfig::embedded(cfg!(sigma_racer_wingman_embedded)),
     );
     init_gauge_art(&ui);
 
@@ -53,7 +53,7 @@ fn main() -> Result<(), slint::PlatformError> {
 
 /// Fallback values until the first Snapshot arrives from vehicle.service.
 fn push_idle(ui: &SigmaDashboard) {
-    use sigmaracer_instrumentation::{gauge, set_speed_readout};
+    use sigma_instrumentation::{gauge, set_speed_readout};
     use vehicle::XSR900_GP;
 
     let profile = XSR900_GP;

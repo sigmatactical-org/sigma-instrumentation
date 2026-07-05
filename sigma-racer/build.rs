@@ -1,3 +1,3 @@
 fn main() {
-    println!("cargo::rustc-check-cfg=cfg(sigmaracer_wingman_embedded)");
+    println!("cargo::rustc-check-cfg=cfg(sigma_racer_wingman_embedded)");
 }

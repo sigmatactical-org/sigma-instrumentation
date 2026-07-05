@@ -2,7 +2,7 @@
 
 mod sim;
 
-use sigmaracer_instrumentation::{
+use sigma_instrumentation::{
     configure_window, init_gauge_art, theme, DisplayConfig, SigmaDashboard,
 };
 use slint::ComponentHandle;

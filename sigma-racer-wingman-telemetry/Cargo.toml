@@ -1,5 +1,5 @@
 [package]
-name = "sigmaracer-wingman-telemetry"
+name = "sigma-racer-wingman-telemetry"
 description = "Sigma Racer Wingman VSS telemetry protocol, CAN decode, and IPC client"
 version.workspace = true
 edition.workspace = true

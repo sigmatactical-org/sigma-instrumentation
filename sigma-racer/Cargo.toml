@@ -13,8 +13,8 @@ name = "sigma-dash"
 path = "src/main.rs"
 
 [dependencies]
-sigmaracer-instrumentation = { workspace = true }
-sigmaracer-wingman-telemetry = { workspace = true }
+sigma-instrumentation = { workspace = true }
+sigma-racer-wingman-telemetry = { workspace = true }
 slint = { workspace = true }
 chrono = { workspace = true }
 
