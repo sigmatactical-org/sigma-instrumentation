@@ -1,15 +1,5 @@
-//! M7 draft DBC (schemas/can/m7-draft.dbc).
+//! M7 draft DBC — re-exported from the shared `sigma-racer-wingman-m7-can`
+//! crate, which is the single source of truth for the M7 CAN contract shared
+//! with the (future) M7 firmware.
 
-use dbc_rs::Dbc;
-use std::sync::OnceLock;
-
-const M7_DBC: &str = include_str!("../dbc/m7-draft.dbc");
-
-static PARSED: OnceLock<Dbc> = OnceLock::new();
-
-/// Parsed M7 draft database (lazy, thread-safe).
-pub fn m7_dbc() -> &'static Dbc {
-    PARSED.get_or_init(|| {
-        Dbc::parse(M7_DBC).expect("m7-draft.dbc must parse")
-    })
-}
+pub use sigma_racer_wingman_m7_can::{dbc as m7_dbc, Dbc};

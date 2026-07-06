@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "sigma-instrumentation",
     "testbed",
+    "sigma-racer-wingman-m7-can",
     "sigma-racer-wingman-telemetry",
     "vehicle-service",
 ]
@@ -19,4 +20,5 @@ slint = { version = "=1.13.1", default-features = false, features = ["renderer-f
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
 slint-build = "=1.13.1"
 sigma-instrumentation = { path = "sigma-instrumentation" }
+sigma-racer-wingman-m7-can = { path = "sigma-racer-wingman-m7-can" }
 sigma-racer-wingman-telemetry = { path = "sigma-racer-wingman-telemetry" }
