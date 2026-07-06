@@ -1,13 +1,14 @@
 # Sigma Racer Instrumentation
 
 Rust workspace for the **Sigma Racer** motorcycle instrument cluster — reusable UI
-library, product app, and desktop testbed.
+library, desktop testbed, and vehicle service.
 
 | Crate | Binary | Role |
 |-------|--------|------|
 | [`sigma-instrumentation/`](sigma-instrumentation/) | *(library)* | Slint dashboard, gauge geometry, themes, display helpers |
-| [`sigma-racer/`](sigma-racer/) | `sigma-dash` | **Sigma Racer** product app — ships on Wingman (CAN-FD seam) |
 | [`testbed/`](testbed/) | `testbed` | Interactive demo — ride simulation, window nav, component testing |
+
+Production cluster binary **`sigma-dash`** lives in the sibling [`sigma-racer`](../sigma-racer/) repo.
 
 ## Quick start
 
@@ -19,7 +20,7 @@ cargo run -p testbed
 cargo virt
 
 # Production binary (idle telemetry — same as embedded target)
-cargo run -p sigma-racer --bin sigma-dash
+cd ../sigma-racer && cargo run --bin sigma-dash
 ```
 
 ### Testbed controls
@@ -36,8 +37,8 @@ cargo run -p sigma-racer --bin sigma-dash
 
 ```
 sigma-instrumentation/   # lib — ui/, gauge, theme, display helpers
-sigma-racer/                  # product — sigma-dash binary, vehicle profile
 testbed/                      # dev — XSR900 ride simulation
+../sigma-racer/                 # product — sigma-dash binary, vehicle profile
 ```
 
 ## Display modes
@@ -47,10 +48,10 @@ Set `SIGMA_DISPLAY_MODE` to `night` (default), `dusk`, or `day`. See
 
 ## Embedded build (Wingman)
 
-The Yocto recipe builds **`sigma-dash`** from the `sigma-racer` crate:
+The Yocto recipe builds **`sigma-dash`** from the [`sigma-racer`](../sigma-racer/) crate:
 
 ```bash
-bitbake sigma-instrumentation
+bitbake sigma-racer
 ```
 
 | Item | Value |

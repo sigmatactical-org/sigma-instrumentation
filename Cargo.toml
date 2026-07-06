@@ -2,7 +2,6 @@
 resolver = "2"
 members = [
     "sigma-instrumentation",
-    "sigma-racer",
     "testbed",
     "sigma-racer-wingman-telemetry",
     "vehicle-service",

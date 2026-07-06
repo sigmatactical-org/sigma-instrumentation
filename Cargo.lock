@@ -3815,16 +3815,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sigma-racer"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "sigma-instrumentation",
- "sigma-racer-wingman-telemetry",
- "slint",
-]
-
-[[package]]
 name = "sigma-racer-wingman-telemetry"
 version = "0.1.0"
 dependencies = [
