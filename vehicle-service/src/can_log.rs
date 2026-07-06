@@ -1,9 +1,9 @@
 //! Optional MDF4 CAN logging via mdf4-rs CanDbcLogger.
 
+use crate::env;
 use sigma_racer_wingman_telemetry::m7_dbc::m7_dbc;
 use mdf4_rs::can::CanDbcLogger;
 use mdf4_rs::writer::VecWriter;
-use std::env;
 use std::fs;
 use std::path::PathBuf;
 use std::time::Instant;
@@ -16,16 +16,21 @@ pub struct CanLogger {
 
 impl CanLogger {
     pub fn open() -> Option<Self> {
-        let path = env::var("CO_PILOT_CAN_LOG_PATH").ok()?;
+        let path = env::var("CAN_LOG_PATH")?;
         if path.is_empty() {
             return None;
         }
 
         let dbc = m7_dbc().clone();
-        let logger = CanDbcLogger::builder(dbc)
-            .include_units(true)
-            .build()
-            .unwrap_or_else(|err| panic!("CanDbcLogger: {err}"));
+        let logger = match CanDbcLogger::builder(dbc).include_units(true).build() {
+            Ok(logger) => logger,
+            Err(err) => {
+                // Logging is best-effort; never take down telemetry because the
+                // optional MDF4 logger could not be constructed.
+                eprintln!("sigma-racer-wingman-vehicle: CAN logging disabled: {err}");
+                return None;
+            }
+        };
 
         eprintln!("sigma-racer-wingman-vehicle: CAN MDF4 logging to {path}");
         Some(Self {

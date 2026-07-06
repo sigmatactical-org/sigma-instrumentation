@@ -11,7 +11,12 @@ publish.workspace = true
 name = "sigma-racer-wingman-vehicle"
 path = "src/main.rs"
 
+[features]
+default = []
+can-socket = ["dep:socketcan"]
+
 [dependencies]
 sigma-racer-wingman-telemetry = { path = "../sigma-racer-wingman-telemetry" }
 mdf4-rs = { version = "0.3.2", default-features = false, features = ["std", "dbc", "can"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+socketcan = { version = "3.5", optional = true }

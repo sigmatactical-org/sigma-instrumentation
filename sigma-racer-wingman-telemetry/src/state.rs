@@ -55,6 +55,9 @@ impl VehicleState {
     }
 
     pub fn refresh_derived(&mut self) {
+        // `at_redline` is a derived flag: it is computed from the current RPM and
+        // is *not* an independent input (see `apply_vss`). Recomputing it here on
+        // every update keeps it consistent and prevents it from latching.
         self.at_redline = self.rpm >= REDLINE_RPM;
     }
 
@@ -120,9 +123,10 @@ impl VehicleState {
             "Vehicle.Speed" => self.speed = json_f32(value),
             "Vehicle.Powertrain.CombustionEngine.Speed" => self.rpm = json_f32(value),
             "Vehicle.Powertrain.Transmission.CurrentGear" => self.gear = json_i8(value),
-            "Vehicle.Powertrain.CombustionEngine.IsRedline" => {
-                self.at_redline = json_bool(value)
-            }
+            // Derived from RPM in `refresh_derived`; the transported value is
+            // informational only, so accepting it here (then having it clobbered)
+            // would be misleading. Ignore the input and let the derivation win.
+            "Vehicle.Powertrain.CombustionEngine.IsRedline" => {}
             "Vehicle.Body.IsSideStandEngaged" => self.side_stand = json_bool(value),
             "Vehicle.Powertrain.Transmission.PerformanceMode" => {
                 if let Some(s) = value.as_str() {

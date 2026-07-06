@@ -1,15 +1,18 @@
 //! Co-Pilot vehicle.service — CAN → VSS → Unix socket telemetry.
 
 mod broadcast;
+#[cfg(feature = "can-socket")]
+mod can_bus;
 mod can_log;
+mod env;
 mod sim;
 mod source;
 
 use broadcast::Broadcaster;
+use env::{flag, var_or};
 use sigma_racer_wingman_telemetry::protocol::{diff_vss, Message, SOCKET_PATH};
 use sigma_racer_wingman_telemetry::state::VehicleState;
 use source::SignalSource;
-use std::env;
 use std::fs;
 use std::os::unix::net::UnixListener;
 use std::path::Path;
@@ -24,11 +27,10 @@ fn main() {
 }
 
 fn run() -> Result<(), String> {
-    let socket_path = env::var("CO_PILOT_TELEMETRY_SOCKET")
-        .unwrap_or_else(|_| SOCKET_PATH.into());
+    let socket_path = var_or("TELEMETRY_SOCKET", SOCKET_PATH);
     prepare_socket(&socket_path)?;
 
-    let demo = env_flag("CO_PILOT_VEHICLE_DEMO");
+    let demo = flag("VEHICLE_DEMO");
     let (mut source, mut can_logger) = SignalSource::open(demo)?;
     let mut state = VehicleState::idle();
     source.apply_to(&mut state, &mut can_logger);
@@ -44,6 +46,7 @@ fn run() -> Result<(), String> {
     let mut seq: u64 = 0;
     let mut prev = state.clone();
     let mut sample_at = Instant::now();
+    let mut snapshot_at = Instant::now();
     let mut heartbeat_at = Instant::now();
 
     eprintln!(
@@ -63,9 +66,14 @@ fn run() -> Result<(), String> {
                 seq += 1;
                 broadcaster.send(Message::signal_update(seq, patch).to_line());
                 prev = state.clone();
-            } else if sample_at.elapsed() >= Duration::from_millis(200) {
+                snapshot_at = Instant::now();
+            } else if snapshot_at.elapsed() >= Duration::from_millis(200) {
+                // Periodic keepalive snapshot when nothing changed. Tracked with
+                // its own timer so it actually fires (it must not be gated on the
+                // 50 ms sampling timer, which resets every tick).
                 seq += 1;
                 broadcaster.send(Message::snapshot(seq, &state).to_line());
+                snapshot_at = Instant::now();
             }
             sample_at = Instant::now();
         }
@@ -112,9 +120,3 @@ fn prepare_socket(path: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn env_flag(name: &str) -> bool {
-    matches!(
-        env::var(name).as_deref(),
-        Ok("1") | Ok("true") | Ok("TRUE") | Ok("yes")
-    )
-}
