@@ -9,6 +9,9 @@ use std::collections::HashMap;
 pub const PROTOCOL_VERSION: &str = "0.1";
 pub const SOCKET_PATH: &str = "/run/sigma-racer-wingman/vehicle.sock";
 
+/// Full snapshot rate when nothing changed (10 Hz per schema).
+pub const SNAPSHOT_INTERVAL_MS: u64 = 100;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Message {
     pub version: String,
@@ -25,6 +28,23 @@ pub struct Message {
     pub value: Option<Value>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub uptime_ms: Option<u64>,
+}
+
+#[derive(Debug)]
+pub enum ParseError {
+    Json(serde_json::Error),
+    UnsupportedVersion(String),
+    UnknownKind(String),
+}
+
+impl std::fmt::Display for ParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Json(err) => write!(f, "{err}"),
+            Self::UnsupportedVersion(v) => write!(f, "unsupported protocol version {v}"),
+            Self::UnknownKind(kind) => write!(f, "unknown message kind {kind}"),
+        }
+    }
 }
 
 impl Message {
@@ -78,6 +98,17 @@ impl Message {
         serde_json::from_str(line.trim())
     }
 
+    pub fn parse_validated(line: &str) -> Result<Self, ParseError> {
+        let msg = Self::parse_line(line).map_err(ParseError::Json)?;
+        if msg.version != PROTOCOL_VERSION {
+            return Err(ParseError::UnsupportedVersion(msg.version));
+        }
+        match msg.msg.as_str() {
+            "Snapshot" | "SignalUpdate" | "Heartbeat" => Ok(msg),
+            other => Err(ParseError::UnknownKind(other.into())),
+        }
+    }
+
     pub fn vss_data(&self) -> Option<&HashMap<String, Value>> {
         self.data.as_ref()
     }
@@ -93,4 +124,24 @@ pub fn diff_vss(prev: &VehicleState, next: &VehicleState) -> HashMap<String, Val
     b.into_iter()
         .filter(|(k, v)| a.get(k) != Some(v))
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rejects_wrong_protocol_version() {
+        let line = r#"{"version":"9.9","msg":"Snapshot","ts":"t","seq":1,"data":{}}"#;
+        match Message::parse_validated(line) {
+            Err(ParseError::UnsupportedVersion(v)) => assert_eq!(v, "9.9"),
+            other => panic!("expected version error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn accepts_snapshot() {
+        let line = Message::snapshot(1, &VehicleState::idle()).to_line();
+        assert!(Message::parse_validated(&line).is_ok());
+    }
 }

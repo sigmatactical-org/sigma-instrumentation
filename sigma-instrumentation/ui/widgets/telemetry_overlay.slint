@@ -1,0 +1,21 @@
+import { SigmaTheme } from "../theme.slint";
+
+export component TelemetryOverlay inherits Rectangle {
+    in property <bool> live: true;
+
+    visible: !root.live;
+    width: 100%;
+    height: 100%;
+    background: #00000088;
+
+    Text {
+        width: 100%;
+        y: parent.height / 2 - self.preferred-height / 2;
+        text: "NO VEHICLE DATA";
+        color: SigmaTheme.accent-red-dim;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        horizontal-alignment: center;
+    }
+}

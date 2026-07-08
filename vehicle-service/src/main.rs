@@ -1,4 +1,4 @@
-//! Co-Pilot vehicle.service — CAN → VSS → Unix socket telemetry.
+//! Sigma Racer Wingman vehicle.service — CAN → VSS → Unix socket telemetry.
 
 mod broadcast;
 #[cfg(feature = "can-socket")]
@@ -10,11 +10,12 @@ mod source;
 
 use broadcast::Broadcaster;
 use env::{flag, var_or};
-use sigma_racer_wingman_telemetry::protocol::{diff_vss, Message, SOCKET_PATH};
+use sigma_racer_wingman_telemetry::protocol::{
+    diff_vss, Message, SNAPSHOT_INTERVAL_MS, SOCKET_PATH,
+};
+use sigma_racer_wingman_telemetry::socket::bind_listener;
 use sigma_racer_wingman_telemetry::state::VehicleState;
 use source::SignalSource;
-use std::fs;
-use std::os::unix::net::UnixListener;
 use std::path::Path;
 use std::thread;
 use std::time::{Duration, Instant};
@@ -28,18 +29,13 @@ fn main() {
 
 fn run() -> Result<(), String> {
     let socket_path = var_or("TELEMETRY_SOCKET", SOCKET_PATH);
-    prepare_socket(&socket_path)?;
-
     let demo = flag("VEHICLE_DEMO");
     let (mut source, mut can_logger) = SignalSource::open(demo)?;
     let mut state = VehicleState::idle();
     source.apply_to(&mut state, &mut can_logger);
 
-    let listener = UnixListener::bind(&socket_path)
+    let listener = bind_listener(Path::new(&socket_path))
         .map_err(|err| format!("bind {socket_path}: {err}"))?;
-    listener
-        .set_nonblocking(true)
-        .map_err(|err| format!("listener nonblocking: {err}"))?;
 
     let mut broadcaster = Broadcaster::new();
     let started = Instant::now();
@@ -67,10 +63,7 @@ fn run() -> Result<(), String> {
                 broadcaster.send(Message::signal_update(seq, patch).to_line());
                 prev = state.clone();
                 snapshot_at = Instant::now();
-            } else if snapshot_at.elapsed() >= Duration::from_millis(200) {
-                // Periodic keepalive snapshot when nothing changed. Tracked with
-                // its own timer so it actually fires (it must not be gated on the
-                // 50 ms sampling timer, which resets every tick).
+            } else if snapshot_at.elapsed() >= Duration::from_millis(SNAPSHOT_INTERVAL_MS) {
                 seq += 1;
                 broadcaster.send(Message::snapshot(seq, &state).to_line());
                 snapshot_at = Instant::now();
@@ -91,7 +84,7 @@ fn run() -> Result<(), String> {
 }
 
 fn accept_clients(
-    listener: &UnixListener,
+    listener: &std::os::unix::net::UnixListener,
     broadcaster: &mut Broadcaster,
     seq: &mut u64,
     state: &VehicleState,
@@ -111,12 +104,3 @@ fn accept_clients(
         }
     }
 }
-
-fn prepare_socket(path: &str) -> Result<(), String> {
-    if let Some(dir) = Path::new(path).parent() {
-        fs::create_dir_all(dir).map_err(|err| format!("mkdir {}: {err}", dir.display()))?;
-    }
-    let _ = fs::remove_file(path);
-    Ok(())
-}
-

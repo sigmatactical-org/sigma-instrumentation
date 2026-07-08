@@ -61,12 +61,17 @@ impl SignalSource {
         match self {
             Self::Sim(sim) => {
                 sim.apply_to(state);
+                state.signals_live = true;
                 if let Some(log) = logger {
                     log.log_frames(&encode_sim_frames(state));
                 }
             }
             #[cfg(feature = "can-socket")]
-            Self::Can(bus) => bus.poll(state, logger),
+            Self::Can(bus) => {
+                bus.poll(state, logger);
+                state.signals_live = bus.signals_live();
+            }
         }
+        state.refresh_derived();
     }
 }

@@ -1,4 +1,4 @@
-//! Environment variables — prefer SIGMA_RACER_WINGMAN_* with CO_PILOT_* fallback.
+//! Environment variables — `SIGMA_RACER_WINGMAN_*` with bare-name fallback.
 
 use std::env;
 
@@ -7,10 +7,10 @@ pub fn var(primary: &str) -> Option<String> {
     // The owned `sigma` string is dropped at the end of the call — no leak.
     let sigma = format!("SIGMA_RACER_WINGMAN_{primary}");
     for name in [sigma.as_str(), primary] {
-        if let Ok(value) = env::var(name) {
-            if !value.is_empty() {
-                return Some(value);
-            }
+        if let Ok(value) = env::var(name)
+            && !value.is_empty()
+        {
+            return Some(value);
         }
     }
     None

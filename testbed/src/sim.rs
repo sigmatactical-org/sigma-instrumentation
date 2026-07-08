@@ -353,7 +353,7 @@ impl RideSimulation {
 
         let heading = (t * 8.0).rem_euclid(360.0);
         ui.set_heading(heading);
-        ui.set_heading_label(SharedString::from(heading_label(heading)));
+        ui.set_heading_label(SharedString::from(sigma_instrumentation::heading_label(heading)));
         ui.set_elevation((667.0 + 30.0 * (t * 0.05).sin()).round() as i32);
     }
 }
@@ -465,10 +465,4 @@ fn speed_digits(speed: i32) -> (SharedString, SharedString, SharedString) {
     };
     let os = SharedString::from(format!("{o}"));
     (hs, ts, os)
-}
-
-fn heading_label(deg: f32) -> &'static str {
-    const DIRS: [&str; 8] = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-    let idx = (((deg.rem_euclid(360.0)) / 45.0).round() as usize) % 8;
-    DIRS[idx]
 }

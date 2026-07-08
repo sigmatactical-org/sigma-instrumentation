@@ -1,4 +1,4 @@
-//! Unix socket telemetry subscriber (sigma-dash).
+//! Unix socket telemetry subscriber (sigma-racer-cluster).
 //!
 //! The reader runs on its own thread and **auto-reconnects**: if vehicle.service
 //! restarts (or the socket drops), the thread keeps retrying until the client is
@@ -11,7 +11,7 @@ use std::io::{BufRead, BufReader, Error, ErrorKind};
 use std::os::unix::net::UnixStream;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc::{self, Receiver, SyncSender, TryRecvError, TrySendError};
+use std::sync::mpsc::{self, Receiver, SyncSender, TrySendError};
 use std::sync::Arc;
 use std::thread::{self, JoinHandle};
 use std::time::Duration;
@@ -58,10 +58,7 @@ impl TelemetryClient {
     }
 
     pub fn try_recv(&self) -> Option<Message> {
-        match self.rx.try_recv() {
-            Ok(msg) => Some(msg),
-            Err(TryRecvError::Empty | TryRecvError::Disconnected) => None,
-        }
+        self.rx.try_recv().ok()
     }
 
     pub fn drain(&self) -> impl Iterator<Item = Message> + '_ {
@@ -133,7 +130,7 @@ fn read_stream(stream: UnixStream, tx: &SyncSender<Message>, alive: &Arc<AtomicB
                     }
                     continue;
                 }
-                match Message::parse_line(&line) {
+                match Message::parse_validated(&line) {
                     Ok(msg) => match tx.try_send(msg) {
                         Ok(()) => {}
                         // UI is behind: drop this frame, it will catch up on the
@@ -156,17 +153,10 @@ fn read_stream(stream: UnixStream, tx: &SyncSender<Message>, alive: &Arc<AtomicB
 }
 
 pub fn default_socket() -> String {
-    for name in [
-        "SIGMA_RACER_WINGMAN_TELEMETRY_SOCKET",
-        "CO_PILOT_TELEMETRY_SOCKET",
-    ] {
-        if let Ok(value) = std::env::var(name) {
-            if !value.is_empty() {
-                return value;
-            }
-        }
-    }
-    SOCKET_PATH.into()
+    std::env::var("SIGMA_RACER_WINGMAN_TELEMETRY_SOCKET")
+        .ok()
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| SOCKET_PATH.into())
 }
 
 pub fn connect_error(path: &Path, err: &Error) -> String {

@@ -10,8 +10,6 @@ use sigma_racer_wingman_m7_can::{self as m7, M7Signals, PerformanceMode};
 /// Decode one CAN frame into `state`. Returns `false` if the frame is not part
 /// of the M7 dictionary or fails to decode.
 pub fn decode_frame(id: u32, data: &[u8], state: &mut VehicleState) -> bool {
-    // Seed from the current state so fields not carried by this message keep
-    // their values, then let the decoder overwrite only this frame's signals.
     let mut signals = to_signals(state);
     if !m7::decode(id, data, &mut signals) {
         return false;
@@ -22,11 +20,15 @@ pub fn decode_frame(id: u32, data: &[u8], state: &mut VehicleState) -> bool {
 }
 
 /// Encode the current state as the full set of simulated CAN frames (used by
-/// the `sim` source). Fails soft to no frames if a value is out of range.
+/// the `sim` source). Logs and returns an empty vec when encoding fails.
 pub fn encode_sim_frames(state: &VehicleState) -> Vec<(u32, [u8; 8])> {
-    m7::encode_all(&to_signals(state))
-        .map(|frames| frames.to_vec())
-        .unwrap_or_default()
+    match m7::encode_all(&to_signals(state)) {
+        Ok(frames) => frames.to_vec(),
+        Err(err) => {
+            eprintln!("sigma-racer-wingman-telemetry/can: encode failed: {err}");
+            Vec::new()
+        }
+    }
 }
 
 fn to_signals(state: &VehicleState) -> M7Signals {
@@ -35,8 +37,7 @@ fn to_signals(state: &VehicleState) -> M7Signals {
         coolant_c: state.coolant_c,
         oil_c: state.oil_c,
         redline: state.at_redline,
-        // `VehicleState` has no throttle field yet; the contract carries it.
-        throttle_pct: 0.0,
+        throttle_pct: state.throttle_pct,
         gear: state.gear,
         performance_mode: PerformanceMode::from_label(&state.riding_mode).unwrap_or_default(),
         side_stand: state.side_stand,
@@ -59,7 +60,8 @@ fn from_signals(s: &M7Signals, state: &mut VehicleState) {
     state.rpm = s.engine_rpm;
     state.coolant_c = s.coolant_c;
     state.oil_c = s.oil_c;
-    state.at_redline = s.redline;
+    state.redline_can = s.redline;
+    state.throttle_pct = s.throttle_pct;
     state.gear = s.gear;
     state.riding_mode = s.performance_mode.as_str().into();
     state.side_stand = s.side_stand;
@@ -75,7 +77,6 @@ fn from_signals(s: &M7Signals, state: &mut VehicleState) {
     state.odometer = s.odometer;
     state.trip1 = s.trip1;
     state.trip2 = s.trip2;
-    // `throttle_pct` intentionally dropped — no `VehicleState` field for it.
 }
 
 #[cfg(test)]
@@ -100,5 +101,14 @@ mod tests {
         assert_eq!(decoded.gear, idle.gear);
         assert_eq!(decoded.side_stand, idle.side_stand);
         assert_eq!(decoded.riding_mode, idle.riding_mode);
+    }
+
+    #[test]
+    fn preserves_can_redline_bit() {
+        let mut state = VehicleState::idle();
+        state.rpm = 5_000.0;
+        state.redline_can = true;
+        state.refresh_derived();
+        assert!(state.at_redline);
     }
 }

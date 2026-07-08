@@ -81,9 +81,12 @@ export component RoadDashboard inherits Rectangle {
     in property <float> battery-v: 13.9;
     in property <int> can-load: 22;
     in property <int> dtc: 0;
+    in property <bool> abs-active: false;
+    in property <bool> tc-active: false;
     in property <float> heading: 45;
     in property <string> heading-label: "NE";
     in property <int> elevation: 667;
+    in property <bool> telemetry-live: true;
 
     property <bool> stopped: root.speed == 0;
     property <bool> show-fullscreen: root.stopped && root.current-window >= 4;
@@ -159,6 +162,8 @@ export component RoadDashboard inherits Rectangle {
                 battery-v: root.battery-v;
                 can-load: root.can-load;
                 dtc: root.dtc;
+                abs-active: root.abs-active;
+                tc-active: root.tc-active;
             }
         }
 

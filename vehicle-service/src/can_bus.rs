@@ -10,10 +10,11 @@ use std::io::ErrorKind;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 pub struct CanBus {
     socket: CanSocket,
+    last_frame_at: Option<Instant>,
     _demo: Option<DemoInjector>,
 }
 
@@ -43,6 +44,7 @@ impl CanBus {
 
         Ok(Self {
             socket,
+            last_frame_at: None,
             _demo: demo_injector,
         })
     }
@@ -50,9 +52,6 @@ impl CanBus {
     pub fn poll(&mut self, state: &mut VehicleState, logger: &mut Option<CanLogger>) {
         loop {
             match self.socket.read_frame() {
-                // Only decode real data frames. Remote-request and error frames
-                // carry no signal payload (an error frame's "data" is a bus-error
-                // descriptor, not vehicle data) and must never be decoded.
                 Ok(CanFrame::Data(frame)) => self.handle_data_frame(&frame, state, logger),
                 Ok(_) => continue,
                 Err(err) if err.kind() == ErrorKind::WouldBlock => break,
@@ -64,8 +63,14 @@ impl CanBus {
         }
     }
 
+    pub fn signals_live(&self) -> bool {
+        self.last_frame_at
+            .map(|t| t.elapsed() < Duration::from_millis(500))
+            .unwrap_or(false)
+    }
+
     fn handle_data_frame(
-        &self,
+        &mut self,
         frame: &CanDataFrame,
         state: &mut VehicleState,
         logger: &mut Option<CanLogger>,
@@ -75,9 +80,13 @@ impl CanBus {
         let len = data.len().min(8);
         let mut payload = [0u8; 8];
         payload[..len].copy_from_slice(&data[..len]);
-        decode_frame(id, &payload[..len], state);
-        if let Some(log) = logger {
-            log.log_frames(&[(id, payload)]);
+        if decode_frame(id, &payload[..len], state) {
+            self.last_frame_at = Some(Instant::now());
+            if let Some(log) = logger {
+                log.log_frames(&[(id, payload)]);
+            }
+        } else {
+            eprintln!("sigma-racer-wingman-vehicle: ignore undecodable CAN frame 0x{id:03X}");
         }
     }
 }

@@ -8,7 +8,7 @@ library, desktop testbed, and vehicle service.
 | [`sigma-instrumentation/`](sigma-instrumentation/) | *(library)* | Slint dashboard, gauge geometry, themes, display helpers |
 | [`testbed/`](testbed/) | `testbed` | Interactive demo — ride simulation, window nav, component testing |
 
-Production cluster binary **`sigma-dash`** lives in the sibling [`sigma-racer`](../sigma-racer/) repo.
+Production cluster binary **`sigma-racer-cluster`** lives in the sibling [`sigma-racer-cluster`](../sigma-racer-cluster/) repo.
 
 ## Quick start
 
@@ -20,7 +20,7 @@ cargo run -p testbed
 cargo virt
 
 # Production binary (idle telemetry — same as embedded target)
-cd ../sigma-racer && cargo run --bin sigma-dash
+cd ../sigma-racer-cluster && cargo run --bin sigma-racer-cluster
 ```
 
 ### Testbed controls
@@ -38,7 +38,7 @@ cd ../sigma-racer && cargo run --bin sigma-dash
 ```
 sigma-instrumentation/   # lib — ui/, gauge, theme, display helpers
 testbed/                      # dev — XSR900 ride simulation
-../sigma-racer/                 # product — sigma-dash binary, vehicle profile
+../sigma-racer-cluster/                 # product — sigma-racer-cluster binary, vehicle profile
 ```
 
 ## Display modes
@@ -48,15 +48,15 @@ Set `SIGMA_DISPLAY_MODE` to `night` (default), `dusk`, or `day`. See
 
 ## Embedded build (Wingman)
 
-The Yocto recipe builds **`sigma-dash`** from the [`sigma-racer`](../sigma-racer/) crate:
+The Yocto recipe builds **`sigma-racer-cluster`** from the [`sigma-racer-cluster`](../sigma-racer-cluster/) crate:
 
 ```bash
-bitbake sigma-racer
+bitbake sigma-racer-cluster
 ```
 
 | Item | Value |
 |------|-------|
-| Binary | `/usr/bin/sigma-dash` |
+| Binary | `/usr/bin/sigma-racer-cluster` |
 | systemd | `cluster-ui.service` |
 | Environment | `/etc/sigma-racer-wingman/ui.env` |
 
