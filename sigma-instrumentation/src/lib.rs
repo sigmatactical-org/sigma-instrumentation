@@ -15,7 +15,9 @@ pub mod theme;
 pub mod windows;
 
 pub use dashboard::{init_gauge_art, set_needle_paths, set_speed_readout, speed_digits, start_signal_blink};
-pub use display::{configure_window, DisplayConfig};
+pub use display::{
+    configure_window, ensure_panel_geometry, force_panel_scale_factor, DisplayConfig,
+};
 pub use gauge::GaugeScale;
 pub use heading::heading_label;
 pub use telemetry::{apply_telemetry, ClusterTelemetry, TelemetryPresenter};

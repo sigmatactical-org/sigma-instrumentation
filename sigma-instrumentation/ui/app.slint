@@ -93,15 +93,15 @@ export component SigmaDashboard inherits Window {
 
     forward-focus: fs;
 
-    // Single absolute canvas — avoids VerticalLayout + parent.width = 0 off-screen bugs
+    // Single absolute canvas — design is 800×480; center if the window is larger.
     Rectangle {
         width: 100%;
         height: 100%;
         background: SigmaTheme.bg;
 
         fs := FocusScope {
-            x: 0;
-            y: 0;
+            x: max(0px, (parent.width - 800px) / 2);
+            y: max(0px, (parent.height - 480px) / 2);
             width: 800px;
             height: 480px;
 
@@ -125,7 +125,7 @@ export component SigmaDashboard inherits Window {
             }
 
             RoadDashboard {
-                width: 100%; height: 100%;
+                width: 800px; height: 480px;
                 rpm: root.rpm;
                 speed: root.speed;
                 gear: root.gear;

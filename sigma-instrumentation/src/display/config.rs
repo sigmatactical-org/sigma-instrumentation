@@ -1,7 +1,7 @@
 //! Display sizing presets.
 
-const PANEL_WIDTH: u32 = 800;
-const PANEL_HEIGHT: u32 = 480;
+pub const PANEL_WIDTH: u32 = 800;
+pub const PANEL_HEIGHT: u32 = 480;
 /// Cluster face (480) + harness strip (~96).
 const TESTBED_HEIGHT: u32 = 576;
 
@@ -47,7 +47,8 @@ impl DisplayConfig {
 
     pub const fn embedded(default_kiosk: bool) -> Self {
         Self {
-            fixed_size: None,
+            // Always the cluster panel size — paired with physical pin in kiosk.
+            fixed_size: Some((PANEL_WIDTH, PANEL_HEIGHT)),
             default_kiosk,
         }
     }
