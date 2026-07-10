@@ -46,9 +46,12 @@ Set `SIGMA_DISPLAY_MODE` to `day` (default), `dusk`, or `night`. The testbed but
 
 ## Typography
 
-Cluster UI embeds **Operation Napalm** (army stencil) from the Sigma theme
-(`it/theme/assets/static/fonts/operation-napalm-regular.woff2`, converted to TTF for Slint).
-Window `default-font-family` is `"Operation Napalm"` (Regular only).
+Cluster UI embeds two faces under `ui/fonts/`:
+
+- **DejaVu Sans** — window `default-font-family` (dial numerals, values, gear/speed)
+- **Operation Napalm** — army stencil for chrome labels / units only (`font-family: "Operation Napalm"`)
+
+Importing Napalm alone made it the FemtoVG fallback and dial digits vanished; keep an explicit default sans.
 
 ## Embedded build (Wingman)
 

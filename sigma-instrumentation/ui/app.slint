@@ -1,3 +1,4 @@
+import "./fonts/dejavu-sans.ttf";
 import "./fonts/operation-napalm-regular.ttf";
 import { RoadDashboard } from "road_dashboard.slint";
 import { Tick } from "widgets/rpm_dial.slint";
@@ -13,8 +14,10 @@ export component SigmaDashboard inherits Window {
     preferred-height: root.harness-visible ? 576px : 480px;
     background: SigmaTheme.bg;
     no-frame: true;
+    // Explicit default — an imported font alone becomes the fallback and
+    // Operation Napalm is stencil-only (bad for dial numerals / values).
+    default-font-family: "DejaVu Sans";
     default-font-size: 14px;
-    // Operation Napalm is imported for labels only (WindowFrame / StatRow); values use the default face.
 
     callback rpm-up();
     callback rpm-down();
