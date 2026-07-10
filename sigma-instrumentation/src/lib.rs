@@ -6,12 +6,15 @@
 
 slint::include_modules!();
 
+pub mod buttons;
+pub mod connectivity;
 pub mod dashboard;
 pub mod display;
 pub mod gauge;
 pub mod heading;
 pub mod telemetry;
 pub mod theme;
+pub mod updates;
 pub mod windows;
 
 pub use dashboard::{init_gauge_art, set_needle_paths, set_speed_readout, speed_digits, start_signal_blink};
@@ -22,3 +25,4 @@ pub use gauge::GaugeScale;
 pub use heading::heading_label;
 pub use telemetry::{apply_telemetry, ClusterTelemetry, TelemetryPresenter};
 pub use theme::DisplayMode;
+pub use updates::{start as start_updates_client, UpdatesConfig};

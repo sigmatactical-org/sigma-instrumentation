@@ -1,13 +1,15 @@
 //! Interactive testbed — candump replay into the real cluster UI + harness.
 
+mod connectivity_sim;
 mod map;
 mod replay;
 mod snapshot;
 
+use connectivity_sim::NavState;
 use replay::{pick_candump_file, CandumpReplay};
 use sigma_instrumentation::{
-    configure_window, init_gauge_art, set_speed_readout, start_signal_blink, theme, DisplayConfig,
-    GaugeScale, SigmaDashboard,
+    configure_window, init_gauge_art, set_speed_readout, start_signal_blink, start_updates_client,
+    theme, windows, DisplayConfig, GaugeScale, SigmaDashboard, UpdatesConfig,
 };
 use slint::{ComponentHandle, Model, SharedString};
 use std::cell::Cell;
@@ -49,6 +51,8 @@ fn main() -> Result<(), slint::PlatformError> {
     ui.set_replay_rate(1.0);
 
     let replay = Rc::new(CandumpReplay::default());
+    let nav = Rc::new(NavState::default());
+    connectivity_sim::init(&ui, &nav);
     ui.set_candump_path(SharedString::from(replay.path_label()));
 
     {
@@ -61,19 +65,41 @@ fn main() -> Result<(), slint::PlatformError> {
     }
     {
         let replay = replay.clone();
-        ui.on_nav_next(move || replay.nav_next());
+        let nav = nav.clone();
+        let ui_weak = ui.as_weak();
+        ui.on_nav_next(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                nav.nav_next(&ui, replay.is_stopped());
+            }
+        });
     }
     {
         let replay = replay.clone();
-        ui.on_nav_prev(move || replay.nav_prev());
+        let nav = nav.clone();
+        let ui_weak = ui.as_weak();
+        ui.on_nav_prev(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                nav.nav_prev(&ui, replay.is_stopped());
+            }
+        });
     }
     {
-        let replay = replay.clone();
-        ui.on_nav_home(move || replay.nav_home());
+        let nav = nav.clone();
+        let ui_weak = ui.as_weak();
+        ui.on_nav_back(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                nav.nav_back(&ui);
+            }
+        });
     }
     {
-        let replay = replay.clone();
-        ui.on_nav_select(move |idx| replay.nav_select(idx));
+        let nav = nav.clone();
+        let ui_weak = ui.as_weak();
+        ui.on_nav_select(move || {
+            if let Some(ui) = ui_weak.upgrade() {
+                nav.nav_select(&ui);
+            }
+        });
     }
 
     {
@@ -155,12 +181,25 @@ fn main() -> Result<(), slint::PlatformError> {
         });
     }
 
+    {
+        let replay = replay.clone();
+        let ui_weak = ui.as_weak();
+        ui.on_park(move || {
+            replay.toggle_park();
+            if let Some(ui) = ui_weak.upgrade() {
+                ui.set_parked(replay.parked());
+            }
+        });
+    }
+
     let _signal_blink = start_signal_blink(&ui);
+    start_updates_client(&ui, UpdatesConfig::from_env());
 
     // Dump a real painted frame, then exit.
     if let Ok(path) = std::env::var("SIGMA_SNAPSHOT") {
         let snap_ui = ui.as_weak();
         let snap_replay = replay.clone();
+        let snap_nav = nav.clone();
         let frames = Rc::new(Cell::new(0u32));
         let snap_timer = slint::Timer::default();
         snap_timer.start(
@@ -171,6 +210,7 @@ fn main() -> Result<(), slint::PlatformError> {
                     return;
                 };
                 snap_replay.step(&ui);
+                snap_nav.paint(&ui);
                 let n = frames.get() + 1;
                 frames.set(n);
                 if n >= 10 {
@@ -185,6 +225,7 @@ fn main() -> Result<(), slint::PlatformError> {
 
     let timer = slint::Timer::default();
     let tick_replay = replay.clone();
+    let tick_nav = nav.clone();
     let tick_ui = ui.as_weak();
     timer.start(
         slint::TimerMode::Repeated,
@@ -192,6 +233,10 @@ fn main() -> Result<(), slint::PlatformError> {
         move || {
             if let Some(ui) = tick_ui.upgrade() {
                 tick_replay.step(&ui);
+                ui.set_current_window(tick_nav.window.get());
+                ui.set_nav_blocked_hint(
+                    !tick_replay.is_stopped() && tick_nav.window.get() > windows::PANEL_MAX,
+                );
             }
         },
     );

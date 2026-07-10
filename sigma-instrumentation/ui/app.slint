@@ -5,8 +5,9 @@ import { Tick } from "widgets/rpm_dial.slint";
 import { TelemetryOverlay } from "widgets/telemetry_overlay.slint";
 import { HarnessBar } from "widgets/harness_bar.slint";
 import { SigmaTheme, SigmaTone } from "theme.slint";
+import { ConnItem } from "windows/connectivity.slint";
 
-export { Tick, SigmaTheme, SigmaTone }
+export { Tick, SigmaTheme, SigmaTone, ConnItem }
 
 export component SigmaDashboard inherits Window {
     title: "Sigma Instrumentation";
@@ -21,10 +22,11 @@ export component SigmaDashboard inherits Window {
 
     callback rpm-up();
     callback rpm-down();
-    callback nav-next();
+    // Physical face buttons: left Prev/Next, right Back/Select (see buttons.rs).
     callback nav-prev();
-    callback nav-home();
-    callback nav-select(int);
+    callback nav-next();
+    callback nav-back();
+    callback nav-select();
 
     // Testbed harness (hidden on the product cluster)
     in property <bool> harness-visible: false;
@@ -34,6 +36,8 @@ export component SigmaDashboard inherits Window {
     callback toggle-turn-left();
     callback toggle-turn-right();
     callback toggle-hazard();
+    callback park();
+    in property <bool> parked: false;
     in property <string> candump-path: "(baked sample)";
     in property <string> display-mode-label: "day";
     in-out property <float> replay-rate: 1.0;
@@ -91,6 +95,31 @@ export component SigmaDashboard inherits Window {
     in property <int> elevation: 667;
     in property <bool> telemetry-live: false;
 
+    // OTA catalog (sigma-updates / kind: updates.sigma.localtest.me)
+    in property <string> update-channel: "dev";
+    in property <string> update-current-version: "0.0.0";
+    in property <string> update-available-version: "";
+    in property <string> update-notes: "";
+    in property <bool> update-available: false;
+    in property <bool> update-busy: false;
+    in property <string> update-status: "";
+    in property <int> update-focus: 0;
+    callback check-updates();
+    callback install-updates();
+
+    // Connectivity (BlueZ / connman) — face-button menu on window 4
+    in property <int> conn-screen: 0;
+    in property <[ConnItem]> conn-items;
+    in property <string> conn-status: "";
+    in property <bool> conn-busy: false;
+    in property <bool> bt-powered: false;
+    in property <bool> bt-connected: false;
+    in property <string> bt-device: "—";
+    in property <int> bt-battery: -1;
+    in property <bool> wifi-powered: false;
+    in property <bool> wifi-connected: false;
+    in property <string> wifi-ssid: "—";
+
     forward-focus: fs;
 
     // Single absolute canvas — design is 800×480; center if the window is larger.
@@ -106,21 +135,14 @@ export component SigmaDashboard inherits Window {
             height: 480px;
 
             key-pressed(e) => {
-                if (e.text == Key.RightArrow) { root.nav-next(); return accept; }
+                // Four face buttons (desktop stand-in):
+                //   ← Previous · → Next · ↑ Back · ↓ Select
                 if (e.text == Key.LeftArrow) { root.nav-prev(); return accept; }
-                if (e.text == Key.UpArrow) { root.nav-home(); return accept; }
-                if (e.text == Key.Escape) { root.nav-home(); return accept; }
+                if (e.text == Key.RightArrow) { root.nav-next(); return accept; }
+                if (e.text == Key.UpArrow) { root.nav-back(); return accept; }
+                if (e.text == Key.DownArrow) { root.nav-select(); return accept; }
                 if (e.text == "+") { root.rpm-up(); return accept; }
                 if (e.text == "-") { root.rpm-down(); return accept; }
-                if (e.text == "1") { root.nav-select(0); return accept; }
-                if (e.text == "2") { root.nav-select(1); return accept; }
-                if (e.text == "3") { root.nav-select(2); return accept; }
-                if (e.text == "4") { root.nav-select(3); return accept; }
-                if (e.text == "5") { root.nav-select(4); return accept; }
-                if (e.text == "6") { root.nav-select(5); return accept; }
-                if (e.text == "7") { root.nav-select(6); return accept; }
-                if (e.text == "8") { root.nav-select(7); return accept; }
-                if (e.text == "9") { root.nav-select(8); return accept; }
                 return reject;
             }
 
@@ -177,6 +199,27 @@ export component SigmaDashboard inherits Window {
                 heading-label: root.heading-label;
                 elevation: root.elevation;
                 telemetry-live: root.telemetry-live;
+                update-channel: root.update-channel;
+                update-current-version: root.update-current-version;
+                update-available-version: root.update-available-version;
+                update-notes: root.update-notes;
+                update-available: root.update-available;
+                update-busy: root.update-busy;
+                update-status: root.update-status;
+                update-focus: root.update-focus;
+                check-updates => { root.check-updates(); }
+                install-updates => { root.install-updates(); }
+                conn-screen: root.conn-screen;
+                conn-items: root.conn-items;
+                conn-status: root.conn-status;
+                conn-busy: root.conn-busy;
+                bt-powered: root.bt-powered;
+                bt-connected: root.bt-connected;
+                bt-device: root.bt-device;
+                bt-battery: root.bt-battery;
+                wifi-powered: root.wifi-powered;
+                wifi-connected: root.wifi-connected;
+                wifi-ssid: root.wifi-ssid;
             }
 
             TelemetryOverlay {
@@ -193,12 +236,14 @@ export component SigmaDashboard inherits Window {
             replay-rate <=> root.replay-rate;
             turn-left: root.turn-left;
             turn-right: root.turn-right;
+            parked: root.parked;
             pick-candump => { root.pick-candump(); }
             cycle-display-mode => { root.cycle-display-mode(); }
             replay-rate-changed(r) => { root.replay-rate-changed(r); }
             toggle-turn-left => { root.toggle-turn-left(); }
             toggle-turn-right => { root.toggle-turn-right(); }
             toggle-hazard => { root.toggle-hazard(); }
+            park => { root.park(); }
         }
     }
 }

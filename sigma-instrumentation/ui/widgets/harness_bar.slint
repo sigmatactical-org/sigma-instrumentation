@@ -8,12 +8,14 @@ export component HarnessBar inherits Rectangle {
     callback toggle-turn-left();
     callback toggle-turn-right();
     callback toggle-hazard();
+    callback park();
 
     in property <string> candump-path: "(baked sample)";
     in property <string> display-mode-label: "day";
     in-out property <float> replay-rate: 1.0;
     in property <bool> turn-left: false;
     in property <bool> turn-right: false;
+    in property <bool> parked: false;
 
     height: 96px;
     background: #141418;
@@ -178,6 +180,29 @@ export component HarnessBar inherits Rectangle {
                 width: 100%; height: 100%;
                 text: "Hazard";
                 color: (root.turn-left && root.turn-right) ? SigmaTheme.signal-amber : SigmaTheme.ink;
+                font-size: 12px;
+                font-weight: 400;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+    }
+
+    park-btn := TouchArea {
+        x: 592px;
+        y: 34px;
+        width: 72px;
+        height: 28px;
+        clicked => { root.park(); }
+        Rectangle {
+            background: root.parked ? #1a3a28 : (park-btn.pressed ? #3a3a44 : #2a2a34);
+            border-radius: 2px;
+            border-width: root.parked ? 1px : 0px;
+            border-color: #4a9a6a;
+            Text {
+                width: 100%; height: 100%;
+                text: root.parked ? "Parked" : "Park";
+                color: root.parked ? #8fdfb0 : SigmaTheme.ink;
                 font-size: 12px;
                 font-weight: 400;
                 horizontal-alignment: center;

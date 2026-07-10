@@ -113,3 +113,40 @@ export component Chip inherits Rectangle {
         }
     }
 }
+
+/// Bordered panel control — same chrome as Security status boxes.
+export component PanelAction inherits TouchArea {
+    in property <string> label;
+    in property <bool> active: true;
+    in property <bool> emphasis: false;
+    callback activated();
+
+    height: 36px;
+    enabled: root.active;
+    clicked => { if root.active { root.activated(); } }
+
+    Rectangle {
+        width: 100%; height: 100%;
+        border-radius: 6px;
+        background: transparent;
+        border-width: 1px;
+        border-color: !root.active ? SigmaTheme.dial-whisper
+            : (root.emphasis ? SigmaTheme.accent-amber : SigmaTheme.dial-rule);
+        opacity: root.active
+            ? (root.pressed ? SigmaTone.content-opacity : SigmaTone.stat-opacity)
+            : SigmaTone.chip-off-opacity;
+
+        Text {
+            width: 100%; height: 100%;
+            text: root.label;
+            color: !root.active ? SigmaTheme.dial-caption
+                : (root.emphasis ? SigmaTheme.dial-value : SigmaTheme.dial-ink);
+            font-family: "Operation Napalm";
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+    }
+}

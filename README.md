@@ -33,10 +33,20 @@ cargo run -p testbed
 | **Browse…** | Pick a `candump -L` log |
 | **rate** slider | Replay speed 0.25×–4× |
 | **display mode** | Cycle day → dusk → night |
-| `←` / `→` | Cycle windows |
-| `1`–`9` | Jump to window |
+| **Park** | Idle RPM + side stand; freeze replay |
+| `←` / `→` | Previous / Next window; on Connectivity/Updates, move focus (edge leaves window) |
+| `↑` | Back (list → menu, or home to Systems) |
+| `↓` | Select / confirm focused action |
 | `+` | Restart current log |
 | `-` | Halve replay rate |
+
+Hardware face (product):
+
+```
+LEFT              RIGHT
+Previous          Back
+Next              Select
+```
 
 Default feed is the baked sample from `sigma-racer-cluster/testdata/sample-ride.log`.
 

@@ -1,0 +1,186 @@
+import { SigmaTheme, SigmaTone } from "../theme.slint";
+import { WindowFrame, StatRow, Chip } from "common.slint";
+
+component UpdateActionRow inherits Rectangle {
+    in property <string> title;
+    in property <string> detail: "";
+    in property <bool> focused: false;
+    in property <bool> enabled: true;
+    in property <bool> emphasis: false;
+
+    height: 48px;
+    border-radius: 4px;
+    background: root.focused ? SigmaTheme.dial-rule : transparent;
+    border-width: root.focused ? 1px : 0px;
+    border-color: root.emphasis && root.enabled
+        ? SigmaTheme.accent-amber.with-alpha(0.5)
+        : SigmaTheme.dial-ink.with-alpha(0.35);
+    opacity: root.enabled ? 1 : SigmaTone.chip-off-opacity;
+
+    HorizontalLayout {
+        padding-left: 10px;
+        padding-right: 10px;
+        spacing: 10px;
+        height: 100%;
+
+        Text {
+            text: root.focused ? "▸" : " ";
+            color: SigmaTheme.dial-ink;
+            font-size: 18px;
+            font-weight: 700;
+            vertical-alignment: center;
+            width: 18px;
+        }
+        VerticalLayout {
+            spacing: 0px;
+            vertical-stretch: 1;
+            alignment: center;
+            Text {
+                text: root.title;
+                color: root.focused ? SigmaTheme.dial-value : SigmaTheme.dial-ink;
+                font-size: 20px;
+                font-weight: 400;
+            }
+            if root.detail != "": Text {
+                text: root.detail;
+                color: SigmaTheme.dial-caption;
+                font-size: 12px;
+                font-weight: 400;
+            }
+        }
+    }
+}
+
+export component UpdatesWindow inherits Rectangle {
+    in property <string> channel: "dev";
+    in property <string> current-version: "0.0.0";
+    in property <string> available-version: "";
+    in property <string> update-notes: "";
+    in property <bool> update-available: false;
+    in property <bool> update-busy: false;
+    in property <string> update-status: "";
+    // Face-button focus: 0 = Check, 1 = Install
+    in property <int> update-focus: 0;
+
+    callback check-updates();
+    callback install-updates();
+
+    WindowFrame {
+        width: 100%; height: 100%;
+        title: "UPDATES";
+        hint: root.update-busy ? "WORKING"
+            : (root.update-available ? "AVAILABLE" : "CURRENT");
+
+        HorizontalLayout {
+            spacing: 24px;
+            opacity: SigmaTone.content-opacity;
+
+            VerticalLayout {
+                spacing: 10px;
+                width: 50%;
+
+                Rectangle {
+                    height: 80px;
+                    border-radius: 6px;
+                    background: transparent;
+                    border-width: 1px;
+                    border-color: SigmaTheme.dial-rule;
+                    Text {
+                        width: 100%; height: 100%;
+                        text: root.update-busy ? "WORKING…"
+                            : (root.update-available ? "UPDATE AVAILABLE" : "UP TO DATE");
+                        color: root.update-available || root.update-busy
+                            ? SigmaTheme.dial-value
+                            : SigmaTheme.dial-ink;
+                        font-size: 26px;
+                        font-weight: 400;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+
+                StatRow { label: "INSTALLED"; value: root.current-version; value-size: 22px; }
+                StatRow {
+                    label: "AVAILABLE";
+                    value: root.available-version == "" ? "—" : root.available-version;
+                    value-color: root.update-available ? SigmaTheme.accent-amber : SigmaTheme.dial-value;
+                    value-size: 22px;
+                }
+
+                HorizontalLayout {
+                    spacing: 8px;
+                    Text {
+                        text: "Channel";
+                        color: SigmaTheme.dial-ink;
+                        font-size: 26px;
+                        font-weight: 400;
+                        vertical-alignment: center;
+                    }
+                    Rectangle { horizontal-stretch: 1; }
+                    Chip { text: root.channel; on: true; }
+                }
+            }
+
+            Rectangle { width: 1px; background: SigmaTheme.dial-rule; opacity: SigmaTone.divider-opacity; }
+
+            VerticalLayout {
+                spacing: 8px;
+                horizontal-stretch: 1;
+
+                Text {
+                    text: "CATALOG";
+                    color: SigmaTheme.dial-whisper;
+                    font-family: "Operation Napalm";
+                    font-size: 14px;
+                    font-weight: 400;
+                    letter-spacing: 1px;
+                }
+
+                Text {
+                    text: root.update-notes == ""
+                        ? "↓ Check searches the catalog. ↓ Install applies when an update is available."
+                        : root.update-notes;
+                    color: SigmaTheme.dial-caption;
+                    font-size: 10px;
+                    font-weight: 400;
+                    wrap: word-wrap;
+                }
+
+                if root.update-status != "": Text {
+                    text: root.update-status;
+                    color: SigmaTheme.dial-caption;
+                    font-size: 12px;
+                    font-weight: 400;
+                    wrap: word-wrap;
+                }
+
+                Rectangle { height: 1px; background: SigmaTheme.dial-rule; opacity: SigmaTone.divider-opacity; }
+
+                Text {
+                    text: "← → focus · ↓ select · ↑ back";
+                    color: SigmaTheme.dial-whisper;
+                    font-size: 10px;
+                    opacity: SigmaTone.hint-opacity;
+                }
+
+                UpdateActionRow {
+                    title: root.update-busy ? "SEARCHING…" : "CHECK FOR UPDATES";
+                    detail: "Search the update catalog";
+                    focused: root.update-focus == 0;
+                    enabled: !root.update-busy;
+                }
+                UpdateActionRow {
+                    title: root.update-busy ? "INSTALLING…" : "INSTALL AND REBOOT";
+                    detail: root.update-available
+                        ? "Download bundle, apply, reboot"
+                        : "Available after a newer catalog hit";
+                    focused: root.update-focus == 1;
+                    enabled: root.update-available && !root.update-busy;
+                    emphasis: root.update-available;
+                }
+
+                Rectangle { vertical-stretch: 1; }
+            }
+        }
+    }
+}

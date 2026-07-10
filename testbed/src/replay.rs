@@ -2,7 +2,7 @@
 
 use chrono::{Local, Timelike};
 use sigma_instrumentation::{
-    apply_telemetry, windows, ClusterTelemetry, GaugeScale, SigmaDashboard, TelemetryPresenter,
+    apply_telemetry, ClusterTelemetry, GaugeScale, SigmaDashboard, TelemetryPresenter,
 };
 use sigma_racer_telemetry::can::{decode_frame, parse_candump, CandumpFrame};
 use sigma_racer_telemetry::VehicleState;
@@ -26,8 +26,9 @@ pub struct CandumpReplay {
     /// Simulated seconds into the log (advances by dt × rate).
     sim_t: Cell<f64>,
     rate: Cell<f32>,
-    window: Cell<i32>,
     last_clock_min: Cell<i32>,
+    /// Hold idle RPM + side stand down; freeze candump advance.
+    parked: Cell<bool>,
 }
 
 impl Default for CandumpReplay {
@@ -41,8 +42,8 @@ impl Default for CandumpReplay {
             last_tick: Cell::new(None),
             sim_t: Cell::new(0.0),
             rate: Cell::new(1.0),
-            window: Cell::new(0),
             last_clock_min: Cell::new(-1),
+            parked: Cell::new(false),
         }
     }
 }
@@ -58,6 +59,22 @@ impl CandumpReplay {
 
     pub fn set_rate(&self, rate: f32) {
         self.rate.set(rate.clamp(0.25, 4.0));
+    }
+
+    pub fn parked(&self) -> bool {
+        self.parked.get()
+    }
+
+    /// Latch park: idle RPM, side stand down, freeze replay. Toggle again to resume.
+    pub fn toggle_park(&self) {
+        if self.parked.get() {
+            self.parked.set(false);
+            return;
+        }
+        self.parked.set(true);
+        *self.state.borrow_mut() = VehicleState::idle();
+        self.state.borrow_mut().signals_live = true;
+        self.last_tick.set(None);
     }
 
     pub fn load_path(&self, path: &Path) -> Result<(), String> {
@@ -88,44 +105,15 @@ impl CandumpReplay {
         self.cursor.set(0);
         self.sim_t.set(0.0);
         self.last_tick.set(None);
+        self.parked.set(false);
     }
 
     fn stopped(&self) -> bool {
         self.state.borrow().speed < 0.5
     }
 
-    pub fn nav_next(&self) {
-        let cur = self.window.get();
-        let next = if self.stopped() {
-            (cur + 1).rem_euclid(windows::COUNT)
-        } else {
-            (cur.clamp(0, windows::PANEL_MAX) + 1).rem_euclid(windows::PANEL_MAX + 1)
-        };
-        self.window.set(next);
-    }
-
-    pub fn nav_prev(&self) {
-        let cur = self.window.get();
-        let prev = if self.stopped() {
-            (cur - 1).rem_euclid(windows::COUNT)
-        } else {
-            (cur.clamp(0, windows::PANEL_MAX) - 1).rem_euclid(windows::PANEL_MAX + 1)
-        };
-        self.window.set(prev);
-    }
-
-    pub fn nav_home(&self) {
-        self.window.set(0);
-    }
-
-    pub fn nav_select(&self, idx: i32) {
-        if !(0..windows::COUNT).contains(&idx) {
-            return;
-        }
-        if idx > windows::PANEL_MAX && !self.stopped() {
-            return;
-        }
-        self.window.set(idx);
+    pub fn is_stopped(&self) -> bool {
+        self.stopped()
     }
 
     /// Advance replay by one UI tick and present formatted telemetry.
@@ -136,6 +124,37 @@ impl CandumpReplay {
             None => 0.0,
         };
         self.last_tick.set(Some(now));
+
+        if self.parked.get() {
+            let mut state = self.state.borrow_mut();
+            // Hold park: idle RPM, side stand down, zero motion.
+            state.rpm = 1_200.0;
+            state.speed = 0.0;
+            state.gear = 0;
+            state.throttle_pct = 0.0;
+            state.side_stand = true;
+            state.lean_angle = 0.0;
+            state.gforce = 0.0;
+            state.at_redline = false;
+            state.redline_can = false;
+            state.signals_live = true;
+            state.refresh_derived();
+
+            let mut msg = to_cluster(&state);
+            msg.signals_live = true;
+            apply_telemetry(ui, &msg, &GAUGE);
+            ui.set_parked(true);
+
+            let clock = Local::now();
+            let minute = clock.minute() as i32;
+            if minute != self.last_clock_min.get() {
+                self.last_clock_min.set(minute);
+                ui.set_clock(SharedString::from(clock.format("%H:%M").to_string()));
+            }
+            return;
+        }
+
+        ui.set_parked(false);
 
         let rate = f64::from(self.rate.get());
         let mut t = self.sim_t.get() + dt * rate;
@@ -171,8 +190,6 @@ impl CandumpReplay {
         let mut msg = to_cluster(&state);
         msg.signals_live = true;
         apply_telemetry(ui, &msg, &GAUGE);
-
-        ui.set_current_window(self.window.get());
 
         let clock = Local::now();
         let minute = clock.minute() as i32;

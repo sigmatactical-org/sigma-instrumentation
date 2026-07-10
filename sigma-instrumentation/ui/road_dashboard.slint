@@ -4,20 +4,43 @@ import { SystemsWindow } from "windows/systems.slint";
 import { NavigationWindow } from "windows/navigation.slint";
 import { CompassWindow } from "windows/compass_gps.slint";
 import { DiagnosticsWindow } from "windows/diagnostics.slint";
-import { ConnectivityWindow } from "windows/connectivity.slint";
+import { ConnectivityWindow, ConnItem } from "windows/connectivity.slint";
 import { CameraWindow } from "windows/camera.slint";
 import { MaintenanceWindow } from "windows/maintenance.slint";
 import { FuelWindow } from "windows/fuel.slint";
 import { SecurityWindow } from "windows/security.slint";
+import { UpdatesWindow } from "windows/updates.slint";
 
-// Window index table — keep in sync with src/main.rs and app.slint (keys 1–9).
+// Window index table — keep in sync with windows/mod.rs and app.slint.
 //   0 Systems   1 Navigation   2 Compass/GPS   3 Diagnostics
-//   4 Connectivity   5 Camera   6 Maintenance   7 Fuel   8 Security
-// Indices 0–3: left panel while riding. 4–8: full-screen when stopped.
+//   4 Connectivity   5 Camera   6 Maintenance   7 Fuel   8 Security   9 Updates
+// Indices 0–3: left panel while riding. 4–9: full-screen when stopped.
 
 component FullScreenHost inherits Rectangle {
     in property <int> active-window: 0;
     in property <float> fuel-pct: 0.62;
+    in property <string> update-channel: "dev";
+    in property <string> update-current-version: "0.0.0";
+    in property <string> update-available-version: "";
+    in property <string> update-notes: "";
+    in property <bool> update-available: false;
+    in property <bool> update-busy: false;
+    in property <string> update-status: "";
+    in property <int> update-focus: 0;
+    callback check-updates();
+    callback install-updates();
+
+    in property <int> conn-screen: 0;
+    in property <[ConnItem]> conn-items;
+    in property <string> conn-status: "";
+    in property <bool> conn-busy: false;
+    in property <bool> bt-powered: false;
+    in property <bool> bt-connected: false;
+    in property <string> bt-device: "—";
+    in property <int> bt-battery: -1;
+    in property <bool> wifi-powered: false;
+    in property <bool> wifi-connected: false;
+    in property <string> wifi-ssid: "—";
 
     width: 100%;
     height: 100%;
@@ -25,6 +48,17 @@ component FullScreenHost inherits Rectangle {
 
     if root.active-window == 4: ConnectivityWindow {
         width: 100%; height: 100%;
+        conn-screen: root.conn-screen;
+        conn-items: root.conn-items;
+        conn-status: root.conn-status;
+        conn-busy: root.conn-busy;
+        bt-powered: root.bt-powered;
+        bt-connected: root.bt-connected;
+        bt-device: root.bt-device;
+        bt-battery: root.bt-battery;
+        wifi-powered: root.wifi-powered;
+        wifi-connected: root.wifi-connected;
+        wifi-ssid: root.wifi-ssid;
     }
     if root.active-window == 5: CameraWindow {
         width: 100%; height: 100%;
@@ -38,6 +72,19 @@ component FullScreenHost inherits Rectangle {
     }
     if root.active-window == 8: SecurityWindow {
         width: 100%; height: 100%;
+    }
+    if root.active-window == 9: UpdatesWindow {
+        width: 100%; height: 100%;
+        channel: root.update-channel;
+        current-version: root.update-current-version;
+        available-version: root.update-available-version;
+        update-notes: root.update-notes;
+        update-available: root.update-available;
+        update-busy: root.update-busy;
+        update-status: root.update-status;
+        update-focus: root.update-focus;
+        check-updates => { root.check-updates(); }
+        install-updates => { root.install-updates(); }
     }
 }
 
@@ -94,12 +141,35 @@ export component RoadDashboard inherits Rectangle {
     in property <int> elevation: 667;
     in property <bool> telemetry-live: true;
 
+    in property <string> update-channel: "dev";
+    in property <string> update-current-version: "0.0.0";
+    in property <string> update-available-version: "";
+    in property <string> update-notes: "";
+    in property <bool> update-available: false;
+    in property <bool> update-busy: false;
+    in property <string> update-status: "";
+    in property <int> update-focus: 0;
+    callback check-updates();
+    callback install-updates();
+
+    in property <int> conn-screen: 0;
+    in property <[ConnItem]> conn-items;
+    in property <string> conn-status: "";
+    in property <bool> conn-busy: false;
+    in property <bool> bt-powered: false;
+    in property <bool> bt-connected: false;
+    in property <string> bt-device: "—";
+    in property <int> bt-battery: -1;
+    in property <bool> wifi-powered: false;
+    in property <bool> wifi-connected: false;
+    in property <string> wifi-ssid: "—";
+
     property <bool> stopped: root.speed == 0;
     property <bool> show-fullscreen: root.stopped && root.current-window >= 4;
     property <int> panel-window: root.current-window <= 3 ? root.current-window : 0;
-    // Bottom-right system message slot (priority: side stand → nav hint)
+    // Bottom-right — other system messages (side stand is on the gear hub)
     property <string> system-message:
-        root.side-stand ? "SIDE STAND"
+        root.update-available ? "UPDATE AVAILABLE"
         : (root.nav-blocked-hint && !root.stopped ? "Stop to open full-screen windows" : "");
 
     background: SigmaTheme.tft;
@@ -159,6 +229,8 @@ export component RoadDashboard inherits Rectangle {
                 heading: root.heading;
                 heading-label: root.heading-label;
                 elevation: root.elevation;
+                lean-angle: root.lean-angle;
+                gforce: root.gforce;
             }
             if root.panel-window == 3: DiagnosticsWindow {
                 width: 100%; height: 100%;
@@ -206,7 +278,29 @@ export component RoadDashboard inherits Rectangle {
             font-weight: 400;
         }
 
-        // BOTTOM-RIGHT — reserved for system messages
+        // SIDE STAND — bold, drawn over the gear hub
+        if root.side-stand: Rectangle {
+            x: 452px - 150px;
+            y: 246px - 28px;
+            width: 300px;
+            height: 56px;
+            background: #000000cc;
+            border-radius: 4px;
+            Text {
+                width: 100%;
+                height: 100%;
+                text: "SIDE STAND";
+                color: #ffffff;
+                font-family: "DejaVu Sans";
+                font-size: 28px;
+                font-weight: 800;
+                letter-spacing: 2px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+
+        // BOTTOM-RIGHT — other system messages (not side stand)
         if root.system-message != "": Rectangle {
             x: 560px;
             y: 400px;
@@ -237,12 +331,33 @@ export component RoadDashboard inherits Rectangle {
             width: 100%; height: 100%;
             active-window: root.current-window;
             fuel-pct: root.fuel-pct;
+            update-channel: root.update-channel;
+            update-current-version: root.update-current-version;
+            update-available-version: root.update-available-version;
+            update-notes: root.update-notes;
+            update-available: root.update-available;
+            update-busy: root.update-busy;
+            update-status: root.update-status;
+            update-focus: root.update-focus;
+            check-updates => { root.check-updates(); }
+            install-updates => { root.install-updates(); }
+            conn-screen: root.conn-screen;
+            conn-items: root.conn-items;
+            conn-status: root.conn-status;
+            conn-busy: root.conn-busy;
+            bt-powered: root.bt-powered;
+            bt-connected: root.bt-connected;
+            bt-device: root.bt-device;
+            bt-battery: root.bt-battery;
+            wifi-powered: root.wifi-powered;
+            wifi-connected: root.wifi-connected;
+            wifi-ssid: root.wifi-ssid;
         }
     }
 
     if root.show-fullscreen: Text {
         x: 16px; y: parent.height - 4px - self.preferred-height;
-        text: "← → switch window   ↑ back to ride";
+        text: "← → prev/next   ↑ back   ↓ select";
         color: SigmaTheme.dial-whisper;
         font-size: 8px;
         font-weight: 400;

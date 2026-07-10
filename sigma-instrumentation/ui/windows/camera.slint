@@ -1,54 +1,88 @@
 import { SigmaTheme } from "../theme.slint";
 import { WindowFrame, Chip } from "common.slint";
 
+component CameraFeed inherits Rectangle {
+    in property <string> label: "CAMERA";
+    in property <bool> available: true;
+    in property <bool> recording: true;
+
+    border-radius: 6px;
+    background: SigmaTheme.camera-feed-bg;
+    border-width: 1px;
+    border-color: SigmaTheme.dial-rule;
+    clip: true;
+    horizontal-stretch: 1;
+    vertical-stretch: 1;
+
+    for i in [0, 1, 2, 3, 4, 5, 6, 7]: Rectangle {
+        x: 0; y: i * 44px + 12px; width: 100%; height: 1px;
+        background: SigmaTheme.dial-whisper;
+    }
+
+    Text {
+        width: 100%; height: 100%;
+        text: root.available ? root.label : "NO SIGNAL";
+        color: root.available ? SigmaTheme.dial-label : SigmaTheme.dial-whisper;
+        font-size: 22px;
+        font-weight: 400;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+
+    if root.recording && root.available: Rectangle {
+        x: 12px; y: 12px; width: 8px; height: 8px;
+        border-radius: 4px; background: SigmaTheme.accent-red-dim;
+    }
+    if root.recording && root.available: Text {
+        x: 26px; y: 10px;
+        text: "REC";
+        color: SigmaTheme.dial-caption;
+        font-size: 10px;
+        font-weight: 400;
+    }
+
+    Text {
+        x: 12px;
+        y: parent.height - 22px;
+        text: root.label;
+        color: SigmaTheme.dial-caption;
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: 1px;
+    }
+}
+
 export component CameraWindow inherits Rectangle {
-    in property <bool> rear-view: true;
     in property <bool> front-available: true;
     in property <bool> rear-available: true;
 
     WindowFrame {
         width: 100%; height: 100%;
         title: "CAMERA";
-        hint: root.rear-view ? "REAR" : "FRONT";
+        hint: "FRONT · REAR";
 
-        Rectangle {
+        HorizontalLayout {
+            spacing: 8px;
             vertical-stretch: 1;
-            border-radius: 6px;
-            background: SigmaTheme.camera-feed-bg;
-            border-width: 1px;
-            border-color: SigmaTheme.dial-rule;
-            clip: true;
 
-            for i in [0, 1, 2, 3, 4, 5, 6, 7]: Rectangle {
-                x: 0; y: i * 44px + 12px; width: 100%; height: 1px;
-                background: SigmaTheme.dial-whisper;
+            CameraFeed {
+                label: "FRONT";
+                available: root.front-available;
             }
-
-            Text {
-                width: 100%; height: 100%;
-                text: root.rear-view ? "REAR CAMERA" : "FRONT CAMERA";
-                color: SigmaTheme.dial-label;
-                font-size: 26px;
-                font-weight: 400;
-                horizontal-alignment: center;
-                vertical-alignment: center;
+            CameraFeed {
+                label: "REAR";
+                available: root.rear-available;
             }
-
-            Rectangle {
-                x: 12px; y: 12px; width: 8px; height: 8px;
-                border-radius: 4px; background: SigmaTheme.accent-red-dim;
-            }
-            Text { x: 26px; y: 10px; text: "REC"; color: SigmaTheme.dial-caption; font-size: 10px; font-weight: 400; }
         }
 
         HorizontalLayout {
             spacing: 8px;
             padding-top: 8px;
-            Chip { text: "FRONT"; on: !root.rear-view && root.front-available; }
-            Chip { text: "REAR"; on: root.rear-view && root.rear-available; }
+            Chip { text: "FRONT"; on: root.front-available; }
+            Chip { text: "REAR"; on: root.rear-available; }
             Rectangle { horizontal-stretch: 1; }
             Text {
-                text: "SPACE snapshot · ↓ swap view";
+                text: "SPACE snapshot";
                 color: SigmaTheme.dial-caption;
                 font-size: 10px;
                 font-weight: 400;

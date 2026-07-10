@@ -1,78 +1,173 @@
 import { SigmaTheme, SigmaTone } from "../theme.slint";
-import { WindowFrame, StatRow, Chip } from "common.slint";
+import { WindowFrame, Chip } from "common.slint";
+
+/// One row in a BT / Wi-Fi list (or the main menu when driven from Rust).
+export struct ConnItem {
+    title: string,
+    detail: string,
+    badge: string,
+    focused: bool,
+}
+
+component FocusRow inherits Rectangle {
+    in property <string> title;
+    in property <string> detail: "";
+    in property <string> badge: "";
+    in property <bool> badge-on: false;
+    in property <bool> focused: false;
+
+    height: 44px;
+    border-radius: 4px;
+    background: root.focused ? SigmaTheme.dial-rule : transparent;
+    border-width: root.focused ? 1px : 0px;
+    border-color: SigmaTheme.dial-ink.with-alpha(0.35);
+
+    HorizontalLayout {
+        padding-left: 10px;
+        padding-right: 10px;
+        spacing: 10px;
+        height: 100%;
+
+        Text {
+            text: root.focused ? "▸" : " ";
+            color: SigmaTheme.dial-ink;
+            font-size: 18px;
+            font-weight: 700;
+            vertical-alignment: center;
+            width: 18px;
+        }
+        VerticalLayout {
+            spacing: 0px;
+            vertical-stretch: 1;
+            alignment: center;
+            Text {
+                text: root.title;
+                color: root.focused ? SigmaTheme.dial-value : SigmaTheme.dial-ink;
+                font-size: 20px;
+                font-weight: 400;
+            }
+            if root.detail != "": Text {
+                text: root.detail;
+                color: SigmaTheme.dial-caption;
+                font-size: 12px;
+                font-weight: 400;
+            }
+        }
+        Rectangle { horizontal-stretch: 1; }
+        if root.badge != "": Chip {
+            text: root.badge;
+            on: root.badge-on;
+        }
+    }
+}
 
 export component ConnectivityWindow inherits Rectangle {
-    in property <bool> bt-connected: true;
-    in property <string> bt-device: "iPhone 15 Pro";
-    in property <int> phone-battery: 78;
-    in property <int> notifications: 3;
-    in property <bool> companion-connected: true;
+    // 0 = main menu, 1 = Bluetooth devices, 2 = Wi-Fi networks
+    in property <int> conn-screen: 0;
+    in property <[ConnItem]> conn-items;
+    in property <string> conn-status: "";
+    in property <bool> conn-busy: false;
+
+    in property <bool> bt-powered: false;
+    in property <bool> bt-connected: false;
+    in property <string> bt-device: "—";
+    in property <int> bt-battery: -1;
+    in property <bool> wifi-powered: false;
     in property <bool> wifi-connected: false;
     in property <string> wifi-ssid: "—";
 
+    property <string> screen-title:
+        root.conn-screen == 1 ? "BLUETOOTH"
+        : (root.conn-screen == 2 ? "WI-FI" : "CONNECTIVITY");
+    property <string> screen-hint:
+        root.conn-busy ? "WORKING"
+        : (root.conn-screen == 0 ? "MENU" : "LIST");
+
     WindowFrame {
         width: 100%; height: 100%;
-        title: "CONNECTIVITY";
-        hint: "STOPPED";
+        title: root.screen-title;
+        hint: root.screen-hint;
 
-        HorizontalLayout {
-            spacing: 24px;
+        VerticalLayout {
+            spacing: 6px;
             opacity: SigmaTone.content-opacity;
 
-            VerticalLayout {
-                spacing: 8px;
-                width: 50%;
+            if root.conn-screen == 0: VerticalLayout {
+                spacing: 6px;
+
                 HorizontalLayout {
                     spacing: 8px;
-                    Text { text: "Bluetooth"; color: SigmaTheme.dial-ink; font-size: 26px; font-weight: 400; }
+                    Text {
+                        text: "Status";
+                        color: SigmaTheme.dial-whisper;
+                        font-family: "Operation Napalm";
+                        font-size: 12px;
+                        font-weight: 400;
+                        letter-spacing: 1px;
+                        vertical-alignment: center;
+                    }
                     Rectangle { horizontal-stretch: 1; }
-                    Chip { text: root.bt-connected ? "PAIRED" : "OFF"; on: root.bt-connected; }
+                    Chip {
+                        text: root.bt-powered ? (root.bt-connected ? "BT PAIRED" : "BT ON") : "BT OFF";
+                        on: root.bt-powered;
+                    }
+                    Chip {
+                        text: root.wifi-powered ? (root.wifi-connected ? "WIFI ON" : "WIFI READY") : "WIFI OFF";
+                        on: root.wifi-powered;
+                    }
                 }
-                StatRow { label: "DEVICE"; value: root.bt-device; value-size: 22px; }
-                StatRow { label: "PHONE BATTERY"; value: "\{root.phone-battery}%"; value-size: 22px; }
-                StatRow {
-                    label: "NOTIFICATIONS";
-                    value: "\{root.notifications}";
-                    value-color: root.notifications > 0 ? SigmaTheme.dial-value : SigmaTheme.dial-ink;
-                    value-size: 22px;
+
+                Text {
+                    text: root.bt-connected
+                        ? (root.bt-battery >= 0
+                            ? "Headset  \{root.bt-device}  \{root.bt-battery}%"
+                            : "Headset  \{root.bt-device}")
+                        : "Headset  —";
+                    color: SigmaTheme.dial-caption;
+                    font-size: 12px;
+                }
+                Text {
+                    text: root.wifi-connected ? "Network  \{root.wifi-ssid}" : "Network  —";
+                    color: SigmaTheme.dial-caption;
+                    font-size: 12px;
                 }
 
                 Rectangle { height: 1px; background: SigmaTheme.dial-rule; opacity: SigmaTone.divider-opacity; }
 
-                HorizontalLayout {
-                    spacing: 8px;
-                    Text { text: "Wi-Fi"; color: SigmaTheme.dial-ink; font-size: 26px; font-weight: 400; }
-                    Rectangle { horizontal-stretch: 1; }
-                    Chip { text: root.wifi-connected ? "ON" : "OFF"; on: root.wifi-connected; }
-                }
-                StatRow { label: "NETWORK"; value: root.wifi-ssid; value-size: 22px; }
-            }
-
-            Rectangle { width: 1px; background: SigmaTheme.dial-rule; opacity: SigmaTone.divider-opacity; }
-
-            VerticalLayout {
-                spacing: 8px;
-                horizontal-stretch: 1;
-                HorizontalLayout {
-                    spacing: 8px;
-                    Text { text: "Companion App"; color: SigmaTheme.dial-ink; font-size: 26px; font-weight: 400; }
-                    Rectangle { horizontal-stretch: 1; }
-                    Chip { text: root.companion-connected ? "LINKED" : "—"; on: root.companion-connected; }
-                }
                 Text {
-                    text: root.companion-connected
-                        ? "Ride sync, route push and cloud backup active."
-                        : "Open the Sigma app on your phone to link.";
-                    color: SigmaTheme.dial-caption;
+                    text: "← → move focus · ↓ select · ↑ back";
+                    color: SigmaTheme.dial-whisper;
                     font-size: 10px;
-                    font-weight: 400;
-                    wrap: word-wrap;
+                    opacity: SigmaTone.hint-opacity;
                 }
-                StatRow { label: "MEDIA"; value: "Now Playing ▸"; value-size: 22px; }
-                StatRow { label: "CALLS"; value: "Forwarded"; value-size: 22px; }
-
-                Rectangle { vertical-stretch: 1; }
             }
+
+            if root.conn-screen != 0: Text {
+                text: root.conn-screen == 1
+                    ? "Select a headset · Esc returns to menu"
+                    : "Select a network · Esc returns to menu";
+                color: SigmaTheme.dial-whisper;
+                font-size: 10px;
+                opacity: SigmaTone.hint-opacity;
+            }
+
+            for item[i] in root.conn-items: FocusRow {
+                title: item.title;
+                detail: item.detail;
+                badge: item.badge;
+                badge-on: item.badge == "ON" || item.badge == "PAIRED"
+                    || item.badge == "CONNECTED" || item.badge == "ONLINE";
+                focused: item.focused;
+            }
+
+            if root.conn-status != "": Text {
+                text: root.conn-status;
+                color: SigmaTheme.dial-caption;
+                font-size: 12px;
+                wrap: word-wrap;
+            }
+
+            Rectangle { vertical-stretch: 1; }
         }
     }
 }

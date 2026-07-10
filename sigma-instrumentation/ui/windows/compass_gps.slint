@@ -9,6 +9,8 @@ export component CompassWindow inherits Rectangle {
     in property <int> elevation: 667;
     in property <int> satellites: 11;
     in property <bool> gps-fix: true;
+    in property <float> lean-angle: 0;
+    in property <float> gforce: 0;
 
     pure function cardinal(a: int) -> string {
         if (a == 0) { return "N"; }
@@ -114,6 +116,11 @@ export component CompassWindow inherits Rectangle {
         StatRow { label: "LAT"; value: root.lat; value-size: 22px; }
         StatRow { label: "LON"; value: root.lon; value-size: 22px; }
         StatRow { label: "ELEV"; value: "\{root.elevation} m"; value-size: 22px; }
+
+        Rectangle { height: 1px; background: SigmaTheme.dial-rule; opacity: SigmaTone.divider-opacity; }
+
+        StatRow { label: "LEAN"; value: "\{round(root.lean-angle)}°"; value-size: 22px; }
+        StatRow { label: "G-FORCE"; value: "\{round(root.gforce * 10) / 10} g"; value-size: 22px; }
 
         Rectangle { vertical-stretch: 1; }
     }

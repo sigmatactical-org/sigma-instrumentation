@@ -16,4 +16,7 @@ publish = false
 slint = { version = "=1.13.1", default-features = false, features = ["renderer-femtovg", "backend-winit", "compat-1-2"] }
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
 slint-build = "=1.13.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+ureq = "2.12"
 sigma-instrumentation = { path = "sigma-instrumentation" }
