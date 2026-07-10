@@ -4,7 +4,7 @@ use sigma_instrumentation::connectivity::{
     self, Action, BackResult, Controller, DeviceRow, NetworkRow, Snapshot, WINDOW as CONN_WINDOW,
 };
 use sigma_instrumentation::updates::{self as updates_nav, WINDOW as UPDATES_WINDOW};
-use sigma_instrumentation::{windows, SigmaDashboard};
+use sigma_instrumentation::{camera, windows, SigmaDashboard};
 use std::cell::{Cell, RefCell};
 
 /// Shared nav + connectivity state for the testbed harness.
@@ -241,6 +241,10 @@ impl NavState {
         }
         if cur == UPDATES_WINDOW {
             updates_nav::activate_focused(ui);
+            return;
+        }
+        if cur == camera::WINDOW {
+            camera::toggle_feed(ui);
         }
     }
 

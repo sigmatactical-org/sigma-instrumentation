@@ -1,7 +1,7 @@
 import { SigmaTheme } from "../theme.slint";
 import { WindowFrame, Chip } from "common.slint";
 
-component CameraFeed inherits Rectangle {
+export component CameraFeed inherits Rectangle {
     in property <string> label: "CAMERA";
     in property <bool> available: true;
     in property <bool> recording: true;
@@ -52,41 +52,51 @@ component CameraFeed inherits Rectangle {
     }
 }
 
-export component CameraWindow inherits Rectangle {
+component TouchChip inherits TouchArea {
+    in property <string> text;
+    in property <bool> on: false;
+    callback activated();
+
+    height: 18px;
+    width: max(28px, inner.preferred-width);
+    clicked => { root.activated(); }
+
+    inner := Chip {
+        width: 100%;
+        height: 100%;
+        text: root.text;
+        on: root.on;
+    }
+}
+
+export component CameraPanelWindow inherits Rectangle {
+    in-out property <bool> show-front: true;
     in property <bool> front-available: true;
     in property <bool> rear-available: true;
 
     WindowFrame {
         width: 100%; height: 100%;
         title: "CAMERA";
-        hint: "FRONT · REAR";
+        hint: root.show-front ? "FRONT" : "REAR";
 
-        HorizontalLayout {
-            spacing: 8px;
+        CameraFeed {
             vertical-stretch: 1;
-
-            CameraFeed {
-                label: "FRONT";
-                available: root.front-available;
-            }
-            CameraFeed {
-                label: "REAR";
-                available: root.rear-available;
-            }
+            label: root.show-front ? "FRONT" : "REAR";
+            available: root.show-front ? root.front-available : root.rear-available;
         }
 
         HorizontalLayout {
-            spacing: 8px;
-            padding-top: 8px;
-            Chip { text: "FRONT"; on: root.front-available; }
-            Chip { text: "REAR"; on: root.rear-available; }
-            Rectangle { horizontal-stretch: 1; }
-            Text {
-                text: "SPACE snapshot";
-                color: SigmaTheme.dial-caption;
-                font-size: 10px;
-                font-weight: 400;
-                vertical-alignment: center;
+            spacing: 6px;
+            padding-top: 6px;
+            TouchChip {
+                text: "FRONT";
+                on: root.show-front;
+                activated => { root.show-front = true; }
+            }
+            TouchChip {
+                text: "REAR";
+                on: !root.show-front;
+                activated => { root.show-front = false; }
             }
         }
     }

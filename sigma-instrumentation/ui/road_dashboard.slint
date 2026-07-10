@@ -5,16 +5,16 @@ import { NavigationWindow } from "windows/navigation.slint";
 import { CompassWindow } from "windows/compass_gps.slint";
 import { DiagnosticsWindow } from "windows/diagnostics.slint";
 import { ConnectivityWindow, ConnItem } from "windows/connectivity.slint";
-import { CameraWindow } from "windows/camera.slint";
+import { CameraPanelWindow } from "windows/camera.slint";
 import { MaintenanceWindow } from "windows/maintenance.slint";
 import { FuelWindow } from "windows/fuel.slint";
 import { SecurityWindow } from "windows/security.slint";
 import { UpdatesWindow } from "windows/updates.slint";
 
 // Window index table — keep in sync with windows/mod.rs and app.slint.
-//   0 Systems   1 Navigation   2 Compass/GPS   3 Diagnostics
-//   4 Connectivity   5 Camera   6 Maintenance   7 Fuel   8 Security   9 Updates
-// Indices 0–3: left panel while riding. 4–9: full-screen when stopped.
+//   0 Systems   1 Navigation   2 Compass/GPS   3 Diagnostics   4 Camera
+//   5 Connectivity   6 Maintenance   7 Fuel   8 Security   9 Updates
+// Indices 0–4: left panel while riding. 5–9: full-screen when stopped.
 
 component FullScreenHost inherits Rectangle {
     in property <int> active-window: 0;
@@ -46,7 +46,7 @@ component FullScreenHost inherits Rectangle {
     height: 100%;
     background: transparent;
 
-    if root.active-window == 4: ConnectivityWindow {
+    if root.active-window == 5: ConnectivityWindow {
         width: 100%; height: 100%;
         conn-screen: root.conn-screen;
         conn-items: root.conn-items;
@@ -59,9 +59,6 @@ component FullScreenHost inherits Rectangle {
         wifi-powered: root.wifi-powered;
         wifi-connected: root.wifi-connected;
         wifi-ssid: root.wifi-ssid;
-    }
-    if root.active-window == 5: CameraWindow {
-        width: 100%; height: 100%;
     }
     if root.active-window == 6: MaintenanceWindow {
         width: 100%; height: 100%;
@@ -164,9 +161,13 @@ export component RoadDashboard inherits Rectangle {
     in property <bool> wifi-connected: false;
     in property <string> wifi-ssid: "—";
 
+    in-out property <bool> camera-front: true;
+    in property <bool> camera-front-available: true;
+    in property <bool> camera-rear-available: true;
+
     property <bool> stopped: root.speed == 0;
-    property <bool> show-fullscreen: root.stopped && root.current-window >= 4;
-    property <int> panel-window: root.current-window <= 3 ? root.current-window : 0;
+    property <bool> show-fullscreen: root.stopped && root.current-window >= 5;
+    property <int> panel-window: root.current-window <= 4 ? root.current-window : 0;
     // Bottom-right — other system messages (side stand is on the gear hub)
     property <string> system-message:
         root.update-available ? "UPDATE AVAILABLE"
@@ -242,6 +243,12 @@ export component RoadDashboard inherits Rectangle {
                 dtc: root.dtc;
                 abs-active: root.abs-active;
                 tc-active: root.tc-active;
+            }
+            if root.panel-window == 4: CameraPanelWindow {
+                width: 100%; height: 100%;
+                show-front <=> root.camera-front;
+                front-available: root.camera-front-available;
+                rear-available: root.camera-rear-available;
             }
         }
 

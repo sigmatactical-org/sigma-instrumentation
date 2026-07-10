@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: embedded/sigma-instrumentation
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: embedded/sigma-instrumentation
+
+      - uses: actions/checkout@v4
+        with:
+          repository: sigmatactical-org/sigma-racer-telemetry
+          path: embedded/sigma-racer-telemetry
+
+      - uses: actions/checkout@v4
+        with:
+          repository: sigmatactical-org/sigma-racer-sidearm
+          path: embedded/sigma-racer-sidearm
+
+      - uses: dtolnay/rust-toolchain@1.86.0
+        with:
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: embedded/sigma-instrumentation
+
+      - name: Library tests
+        run: cargo test -p sigma-instrumentation
+
+      - name: Testbed build
+        run: cargo build -p testbed --release
+
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings

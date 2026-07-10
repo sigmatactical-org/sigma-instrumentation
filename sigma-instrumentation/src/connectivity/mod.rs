@@ -1,6 +1,6 @@
 //! Connectivity window focus model and Slint binding helpers.
 //!
-//! Face buttons on window 4 (Connectivity):
+//! Face buttons on window 5 (Connectivity):
 //! - Previous / Next move the focus highlight (edge Prev/Next leave the window)
 //! - Select activates the focused row
 //! - Back leaves a list to the main menu, or returns home from the main menu
@@ -11,7 +11,7 @@ use std::rc::Rc;
 use crate::{ConnItem, SigmaDashboard};
 
 /// Window index for Connectivity (keep in sync with [`crate::windows`]).
-pub const WINDOW: i32 = 4;
+pub const WINDOW: i32 = 5;
 
 /// Main menu / Bluetooth list / Wi-Fi list.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]

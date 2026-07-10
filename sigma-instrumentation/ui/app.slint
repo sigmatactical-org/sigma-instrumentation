@@ -107,7 +107,7 @@ export component SigmaDashboard inherits Window {
     callback check-updates();
     callback install-updates();
 
-    // Connectivity (BlueZ / connman) — face-button menu on window 4
+    // Connectivity (BlueZ / connman) — face-button menu on window 5
     in property <int> conn-screen: 0;
     in property <[ConnItem]> conn-items;
     in property <string> conn-status: "";
@@ -119,6 +119,10 @@ export component SigmaDashboard inherits Window {
     in property <bool> wifi-powered: false;
     in property <bool> wifi-connected: false;
     in property <string> wifi-ssid: "—";
+
+    in-out property <bool> camera-front: true;
+    in property <bool> camera-front-available: true;
+    in property <bool> camera-rear-available: true;
 
     forward-focus: fs;
 
@@ -220,6 +224,9 @@ export component SigmaDashboard inherits Window {
                 wifi-powered: root.wifi-powered;
                 wifi-connected: root.wifi-connected;
                 wifi-ssid: root.wifi-ssid;
+                camera-front <=> root.camera-front;
+                camera-front-available: root.camera-front-available;
+                camera-rear-available: root.camera-rear-available;
             }
 
             TelemetryOverlay {

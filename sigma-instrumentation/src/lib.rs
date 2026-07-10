@@ -7,6 +7,7 @@
 slint::include_modules!();
 
 pub mod buttons;
+pub mod camera;
 pub mod connectivity;
 pub mod dashboard;
 pub mod display;
