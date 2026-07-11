@@ -36,11 +36,8 @@ jobs:
         with:
           workspaces: embedded/sigma-instrumentation
 
-      - name: Install xvfb
-        run: sudo apt-get update && sudo apt-get install -y xvfb
-
       - name: Library tests
-        run: xvfb-run -a cargo test -p sigma-instrumentation
+        run: cargo test -p sigma-instrumentation
 
       - name: Testbed build
         run: cargo build -p testbed --release

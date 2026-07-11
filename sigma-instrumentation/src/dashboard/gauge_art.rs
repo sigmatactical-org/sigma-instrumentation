@@ -39,10 +39,7 @@ mod tests {
 
     #[test]
     fn installs_thirteen_positioned_numerals_for_default_scale() {
-        let ui = SigmaDashboard::new().expect("dashboard");
-        init_gauge_art(&ui, &GaugeScale::DEFAULT);
-
-        let labels = ui.get_labels();
+        let labels = build_numerals(&GaugeScale::DEFAULT);
         assert_eq!(labels.row_count(), 13);
 
         let zero = labels.row_data(0).expect("0k label");
