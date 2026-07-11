@@ -214,11 +214,11 @@ pub fn start(ui: &SigmaDashboard, cfg: UpdatesConfig) {
     let cfg_once = cfg;
     let last_once = last;
     slint::Timer::single_shot(Duration::from_secs(2), move || {
-        if let Some(ui) = weak.upgrade() {
-            if let Ok(rel) = fetch_latest(&cfg_once) {
-                *last_once.borrow_mut() = Some(rel.clone());
-                apply_release(&ui, &cfg_once, &rel);
-            }
+        if let Some(ui) = weak.upgrade()
+            && let Ok(rel) = fetch_latest(&cfg_once)
+        {
+            *last_once.borrow_mut() = Some(rel.clone());
+            apply_release(&ui, &cfg_once, &rel);
         }
     });
 }
