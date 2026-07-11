@@ -82,7 +82,6 @@ fn sim_snapshot() -> Snapshot {
         status: "Simulated radios (testbed)".into(),
         busy: false,
         available: true,
-        ..Snapshot::default()
     }
 }
 
