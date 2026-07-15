@@ -51,10 +51,10 @@ pub fn describe(status: &str) -> Option<String> {
         Some("Installing update — do not power off.".into())
     } else if let Some(rest) = status.strip_prefix("success:") {
         Some(format!("Installed {rest}."))
-    } else if let Some(rest) = status.strip_prefix("error:") {
-        Some(format!("Update failed: {rest}"))
     } else {
-        None
+        status
+            .strip_prefix("error:")
+            .map(|rest| format!("Update failed: {rest}"))
     }
 }
 
