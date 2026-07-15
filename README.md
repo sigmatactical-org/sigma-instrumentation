@@ -60,12 +60,18 @@ Set `SIGMA_DISPLAY_MODE` to `day` (default), `dusk`, or `night`. The testbed but
 
 ## Typography
 
-Cluster UI embeds two faces under `ui/fonts/`:
+Cluster UI embeds three faces under `ui/fonts/`:
 
-- **DejaVu Sans** — window `default-font-family` (dial numerals, values, gear/speed)
+- **DejaVu Sans** (Book + Bold) — window `default-font-family` (dial numerals, values, gear/speed).
+  Both cuts must be embedded: FemtoVG picks the closest available face, so
+  without the Bold file every `font-weight ≥ 700` silently renders regular.
 - **Operation Napalm** — army stencil for chrome labels / units only (`font-family: "Operation Napalm"`)
 
 Importing Napalm alone made it the FemtoVG fallback and dial digits vanished; keep an explicit default sans.
+
+Font licenses ship alongside the files: DejaVu is Bitstream Vera-licensed
+(notice required in distributions — `LICENSE-dejavu-sans.txt`); Operation
+Napalm is CC0 public domain by GGBotNet (`LICENSE-operation-napalm.txt`).
 
 ## Embedded build (Wingman)
 

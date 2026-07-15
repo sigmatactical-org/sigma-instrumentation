@@ -1,0 +1,12 @@
+Operation Napalm (operation-napalm-regular.ttf)
+
+Author:    GGBotNet — https://ggbot.net
+Version:   1.10
+Copyright: No Rights Reserved
+License:   Creative Commons Zero v1.0 Universal (CC0 1.0)
+           https://creativecommons.org/publicdomain/zero/1.0/
+
+The font is dedicated to the public domain under CC0. It may be used,
+embedded, modified, and redistributed for any purpose, commercial or
+otherwise, without attribution. (Metadata above is preserved from the
+font's own name table for provenance.)
