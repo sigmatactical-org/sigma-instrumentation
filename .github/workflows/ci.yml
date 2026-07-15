@@ -44,6 +44,7 @@ jobs:
         with:
           workspaces: embedded/sigma-instrumentation
           add-rust-environment-hash-key: false
+          key: ${{ hashFiles('embedded/sigma-instrumentation/Cargo.lock', 'embedded/sigma-instrumentation/Cargo.toml', 'embedded/sigma-instrumentation/rust-toolchain.toml', 'embedded/sigma-instrumentation/.cargo/config.toml') }}
 
       - name: Library tests
         run: cargo test -p sigma-instrumentation
