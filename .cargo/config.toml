@@ -1,6 +1,6 @@
 [alias]
 # Same as `cargo run -p testbed` — kept for muscle memory.
-virt = "run -p testbed"
+testbed = "run -p testbed"
 
 [env]
 SIGMA_DISPLAY_MODE = "day"
