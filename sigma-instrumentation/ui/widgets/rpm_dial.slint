@@ -154,6 +154,23 @@ export component RpmDial inherits Rectangle {
         horizontal-alignment: center;
     }
 
+    // Sigma mark on the lower face, below the scale caption. Path data is the
+    // brand symbol from design-resources/sigma.svg; the viewbox is cropped to
+    // the glyph's own bounds (x -2.81..88, y 10..90) so the box below is the
+    // drawn size, not the artboard.
+    Path {
+        x: 452px - 17px;
+        y: 246px + 100px;
+        width: 34px;
+        height: 30px;
+        viewbox-x: -2.81;
+        viewbox-y: 10;
+        viewbox-width: 90.81;
+        viewbox-height: 80;
+        commands: "M88.00 10.00 L -2.81 10.00 L 47.19 50.00 L -2.81 90.00 L 88.00 90.00 L 88.00 74.00 L 87.66 72.07 L 87.11 70.29 L 86.36 68.68 L 85.40 67.22 L 84.23 65.93 L 82.86 64.79 L 81.28 63.82 L 79.50 63.00 L 71.00 74.00 L 42.81 74.00 L 72.81 50.00 L 42.81 26.00 L 71.00 26.00 L 79.50 37.00 L 81.28 36.18 L 82.86 35.21 L 84.23 34.07 L 85.40 32.77 L 86.36 31.32 L 87.11 29.71 L 87.66 27.93 L 88.00 26.00 Z";
+        fill: SigmaTheme.dial-label;
+    }
+
     // RPM scale numerals — drawn last so nothing covers them
     for t in root.labels: Text {
         x: (t.x - 18) * 1px;
