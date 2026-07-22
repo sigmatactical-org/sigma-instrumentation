@@ -14,7 +14,7 @@ use std::time::Instant;
 use crate::map::to_cluster;
 
 const GAUGE: GaugeScale = GaugeScale::DEFAULT;
-const SAMPLE_LOG: &str = include_str!("../../../sigma-racer-cluster/testdata/sample-ride.log");
+const SAMPLE_LOG: &str = include_str!("../../../sigma-racer/cluster/testdata/sample-ride.log");
 
 pub struct CandumpReplay {
     frames: RefCell<Vec<CandumpFrame>>,
